@@ -1,0 +1,13 @@
+{
+  "plugins": ["prettier-plugin-astro"],
+  "singleQuote": true,
+  "trailingComma": "all",
+  "proseWrap": "never",
+  "semi": true,
+  "jsxSingleQuote": false,
+  "printWidth": 120,
+  "tabWidth": 2,
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "arrowParens": "avoid"
+}
