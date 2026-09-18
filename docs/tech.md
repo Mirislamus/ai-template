@@ -25,6 +25,8 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
   - Нативный HTML-элемент `<dialog>` с доступным поведением (ESC, блокировка скролла, фокус-трап).
   - Полноэкранный просмотр изображений (Lightbox): собственная модалка на базе `<dialog>` + Embla Carousel со стилями на SCSS Modules (без сторонних тяжелых библиотек). При острой необходимости жестов пинч-зума допустимо точечное подключение PhotoSwipe v5.
 - **Всплывающие уведомления (Toast):** Sonner (`sonner`).
+- **Сетевой клиент:** Ky (`ky`) — легковесная обертка над Fetch с retry, таймаутами и хуками.
+- **Управление серверным состоянием:** TanStack Query (`@tanstack/react-query`) для кэширования и мутаций данных.
 - **Слайдеры и карусели:** Embla Carousel (`embla-carousel-react`).
 - **Маски ввода (телефон, суммы):** IMask (`imask` / `react-imask`).
 - **Аккордеоны (FAQ) и селекты:** Строго нативные HTML-элементы:
