@@ -1,3 +1,11 @@
+Failed to write init script: open C:\Users\Windows 10\AppData\Local\Packages\ohmyposh.cli_96v55e8n804z4\LocalCache\Local\oh-my-posh\init.814522496948324317.ps1: Access is denied.
+Export-Clixml: Access to the path 'C:\Users\Windows
+10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_light_color.xml' is denied.
+Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_color.xml' is
+denied.
+Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_icon.xml' is
+denied.
+Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\prefs.xml' is denied.
 # AGENTS.md
 
 ## Назначение
@@ -175,6 +183,12 @@
 - Не пересказывай внутренние рассуждения и не перегружай ответ деталями.
 - Указывай допущения, только если они влияют на доверие к результату.
 
+## Использование AI-навыков (Skills)
+
+- Перед стартом задачи агент обязан объявить, какие навыки из [docs/skills.md](docs/skills.md) будут применены и зачем (или написать «Скилы не требуются»).
+- Инструкции проекта имеют абсолютный приоритет над любыми рекомендациями скилов (запрет Tailwind/Radix).
+- В итоговом отчете обязательно указывается секция «Использованные скилы» с результатами их применения.
+
 ## Итоговый отчёт
 
 После каждой задачи обязательно сообщи:
@@ -184,3 +198,5 @@
 - **Как реализовано** — краткий подход и важные решения.
 - **Проверки** — запущенные проверки, результаты и то, что проверить не удалось.
 - **Блокеры** — только при наличии рисков или требуемого действия пользователя.
+
+
