@@ -2,13 +2,13 @@
 
 ## Контекст и цели
 
-Многоязычность сайта напрямую влияет на охват аудитории, конверсию и региональное поисковое ранжирование.
+Многоязычность сайта влияет на охват аудитории, конверсию и региональное поисковое ранжирование.
 Цели архитектурного стандарта:
-1. **100% типобезопасность словарей:** использование константных TypeScript-объектов вместо сырых JSON для автокомплита и проверки отсутствующих ключей на этапе компиляции.
-2. **Нулевой лишний вес в клиенте (Zero Runtime Bloat):** компиляция переводов в статический HTML на этапе сборки SSG (в Astro), проброс в интерактивные острова строго активной локали.
-3. **Отказ от тяжелых библиотек:** замена `react-i18next` на легковесную типизированную утилиту `t()` и нативный `Intl.PluralRules`.
-4. **Четкая маршрутизация:** использование встроенного модуля `astro:i18n` в `astro.config.ts` с бесшовными URL (`/` для основного языка, `/en/` для альтернативного).
-5. **Нативная локализация чисел и дат:** форматирование через стандарты `Intl.NumberFormat` и `Intl.DateTimeFormat`.
+1. **100% типобезопасность словарей:** константные TypeScript-объекты вместо сырых JSON для автокомплита и проверки отсутствующих ключей на этапе компиляции.
+2. **Нулевой лишний вес в клиенте:** переводы компилируются в статический HTML на этапе сборки (Astro SSG), в интерактивные острова передается только срез активной локали.
+3. **Отказ от тяжелых библиотек:** вместо `react-i18next` — легковесная типизированная утилита `t()` и нативный `Intl.PluralRules`.
+4. **Четкая маршрутизация:** встроенный модуль `astro:i18n` в `astro.config.ts` с бесшовными URL (`/` для основного языка, `/en/` для альтернативного).
+5. **Нативная локализация чисел и дат:** `Intl.NumberFormat` и `Intl.DateTimeFormat`.
 
 ---
 
@@ -17,7 +17,8 @@
 ### 1. Формат и структура словарей переводов
 
 - **Размещение:** `src/shared/i18n/locales/` (`ru.ts`, `en.ts`, `uz.ts`).
-- **Константные объекты `as const` с автовыводом схемы:**
+- **Все переводы хранятся в TypeScript-файлах и входят в сборку.** Загрузка словарей с сервера в рантайме не используется; на статическую страницу и в остров попадают только строки активной локали (см. ниже).
+- **Константные объекты `as const`:**
   ```ts
   // src/shared/i18n/locales/ru.ts
   export const ru = {
@@ -33,63 +34,86 @@
       contacts: 'Контакты',
     },
   } as const;
-
-  // Базовая схема выводится автоматически из основного языка:
-  export type TranslationSchema = typeof ru;
   ```
-- **Контроль целостности:**
-  - Файлы альтернативных языков строго типизируются интерфейсом `TranslationSchema`:
-    ```ts
-    // src/shared/i18n/locales/en.ts
-    import type { TranslationSchema } from './ru';
+- **Схема выводится из основного языка с расширением литералов до `string`** (иначе альтернативные языки пришлось бы писать русскими литералами):
+  ```ts
+  // src/shared/i18n/schema.ts
+  import type { ru } from './locales/ru';
 
-    export const en: TranslationSchema = {
-      // Если пропущен ключ или допущена опечатка — билд немедленно падает
-      common: { ... },
-      nav: { ... },
-    };
-    ```
-- **Изоляция размера бандла:**
-  - В статическом рендере Astro страницы собираются изолированно: на странице `/services` в разметку вшит только русский текст, на `/en/services` — только английский. В браузер клиенту JS-файлы словарей не отправляются (0 Кб оверхеда).
-  - В интерактивные острова передается срез переводов конкретного компонента через пропсы (`<ContactForm dict={t.common} />`).
+  type Widen<TValue> = TValue extends string
+    ? string
+    : { -readonly [TKey in keyof TValue]: Widen<TValue[TKey]> };
+
+  export type TranslationSchema = Widen<typeof ru>;
+
+  type Paths<TValue> = TValue extends string
+    ? never
+    : {
+        [TKey in keyof TValue & string]: TValue[TKey] extends string ? TKey : `${TKey}.${Paths<TValue[TKey]>}`;
+      }[keyof TValue & string];
+
+  export type TranslationKey = Paths<TranslationSchema>;
+  ```
+- **Контроль целостности:** файлы альтернативных языков типизируются `TranslationSchema`; пропущенный ключ или опечатка роняет сборку:
+  ```ts
+  // src/shared/i18n/locales/en.ts
+  import type { TranslationSchema } from '../schema';
+
+  export const en: TranslationSchema = {
+    common: { submit: 'Send request', loading: 'Sending...', success: 'Request sent', error: 'Something went wrong' },
+    nav: { services: 'Services', about: 'About', contacts: 'Contacts' },
+  };
+  ```
+- **Изоляция размера бандла:** в статическом рендере Astro на странице `/services` вшит только русский текст, на `/en/services` — только английский; JS-файлы словарей в браузер не отправляются. В интерактивные острова передается срез конкретного раздела активной локали (`<ContactForm dict={getDictionary(lang).common} />`).
 
 ---
 
-### 2. Типизированная утилита перевода: `getTranslations`
+### 2. Типизированные утилиты перевода
 
 - **Размещение:** `src/shared/i18n/utils.ts`.
-- **Легковесный хелпер без сторонних библиотек:**
+- **Легковесные хелперы без сторонних библиотек и без приведений типов:**
   ```ts
-  import { ru } from './locales/ru';
   import { en } from './locales/en';
+  import { ru } from './locales/ru';
+  import type { TranslationKey, TranslationSchema } from './schema';
 
   const locales = { ru, en } as const;
+
   export type SupportedLocale = keyof typeof locales;
   export const DEFAULT_LOCALE: SupportedLocale = 'ru';
 
+  export function getDictionary(lang: SupportedLocale): TranslationSchema {
+    return locales[lang];
+  }
+
+  function resolve(dict: TranslationSchema, key: string): string | undefined {
+    let current: unknown = dict;
+    for (const part of key.split('.')) {
+      if (typeof current !== 'object' || current === null || !(part in current)) return undefined;
+      current = Reflect.get(current, part);
+    }
+    return typeof current === 'string' ? current : undefined;
+  }
+
   export function getTranslations(lang: SupportedLocale = DEFAULT_LOCALE) {
-    const dict = locales[lang] ?? locales[DEFAULT_LOCALE];
+    const dict = getDictionary(lang);
 
-    return function t(section: keyof typeof dict, key: string, params?: Record<string, string | number>): string {
-      const text = (dict[section] as Record<string, string>)?.[key] ?? key;
+    return function t(key: TranslationKey, params?: Record<string, string | number>): string {
+      const text = resolve(dict, key) ?? key;
       if (!params) return text;
-
       // Простая интерполяция {paramName}
-      return Object.entries(params).reduce(
-        (acc, [k, v]) => acc.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v)),
-        text,
-      );
+      return text.replaceAll(/\{(\w+)\}/g, (match, name: string) => String(params[name] ?? match));
     };
   }
   ```
-- **Нативная плюрализация:**
-  - Для правильных окончаний числительных в русском языке используется нативный объект `new Intl.PluralRules(locale)` без сторонних пакетов.
+- Использование: `t('nav.services')`; несуществующий ключ не проходит проверку типов.
+- **Нативная плюрализация:** для окончаний числительных используется `new Intl.PluralRules(locale)` без сторонних пакетов.
 
 ---
 
 ### 3. Маршрутизация и переключение языка (`astro.config.ts`)
 
-- **Конфигурация в `astro.config.ts`:**
+- **Конфигурация:**
   ```ts
   import { defineConfig } from 'astro/config';
 
@@ -104,29 +128,30 @@
   });
   ```
 - **Структура страниц в `src/pages/`:**
-  - `src/pages/index.astro` — главная страница (RU).
-  - `src/pages/services.astro` — страница услуг (RU).
-  - `src/pages/en/index.astro` — главная страница (EN).
-  - `src/pages/en/services.astro` — страница услуг (EN).
-- **Переключатель языков (Language Switcher):**
-  - Реализуется через **нативные HTML-ссылки `<a>`**:
-    ```html
-    <nav aria-label="Язык / Language">
-      <a href="/services" class:list={[{ active: currentLang === 'ru' }]}>RU</a>
-      <a href="/en/services" class:list={[{ active: currentLang === 'en' }]}>EN</a>
-    </nav>
-    ```
-  - Переключение доступно без JavaScript и моментально индексируется поисковыми роботами.
+  - `src/pages/index.astro` — главная (RU), `src/pages/services.astro` — услуги (RU).
+  - `src/pages/en/index.astro` — главная (EN), `src/pages/en/services.astro` — услуги (EN).
+- **Переключатель языков** реализуется нативными HTML-ссылками `<a>`:
+  ```html
+  <nav aria-label="Язык / Language">
+    <a href="/services" class:list={[{ active: currentLang === 'ru' }]}>RU</a>
+    <a href="/en/services" class:list={[{ active: currentLang === 'en' }]}>EN</a>
+  </nav>
+  ```
+  - Переключение работает без JavaScript и сразу индексируется поисковыми роботами; связка `hreflang` — [ADR 0013](0013-seo-standards.md) §5.
 
 ---
 
 ### 4. Локализация чисел, цен и дат
 
-- **Категорический запрет сторонних библиотек:** отказ от `moment`, `dayjs`, `numeral`.
+- **Категорический запрет сторонних библиотек:** `moment`, `dayjs`, `numeral` не используются.
+- **Соответствие локали и `Intl`-тега** задается одним объектом:
+  ```ts
+  const INTL_LOCALES = { ru: 'ru-RU', en: 'en-US' } as const satisfies Record<SupportedLocale, string>;
+  ```
 - **Цены и валюты (`Intl.NumberFormat`):**
   ```ts
   export function formatPrice(amount: number, locale: SupportedLocale, currency = 'RUB'): string {
-    return new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
+    return new Intl.NumberFormat(INTL_LOCALES[locale], {
       style: 'currency',
       currency,
       maximumFractionDigits: 0,
@@ -136,7 +161,7 @@
 - **Календарные даты (`Intl.DateTimeFormat`):**
   ```ts
   export function formatDate(date: Date, locale: SupportedLocale): string {
-    return new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
+    return new Intl.DateTimeFormat(INTL_LOCALES[locale], {
       day: 'numeric',
       month: 'long',
       year: 'numeric',

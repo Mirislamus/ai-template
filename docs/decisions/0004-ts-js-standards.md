@@ -24,11 +24,12 @@ TypeScript и современный JavaScript — фундамент наде�
 - **Контроль приведений типов (`as`):**
   - Небезопасные утверждения вида `const data = response as User` **запрещены**.
   - Разрешено использование `as const` для создания литеральных неизменяемых структур и констант.
-  - Приведение типа допустимо в узких сценариях DOM API, когда элемент гарантированно проверен:
+  - Для DOM API вместо приведения используется сужение типа через `instanceof`:
     ```ts
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement)) return;
     ```
+  - **Полный список допустимых утверждений:** `as const`, `satisfies` и единственная типизированная утилита `getKeys` (§14). Других `as` в прикладном коде быть не должно.
 
 ---
 
@@ -98,11 +99,11 @@ TypeScript и современный JavaScript — фундамент наде�
   - Все функции, утилиты, сервисы и типы экспортируются именованно:
     ```ts
     export function formatDate(date: Date): string { ... }
-    export const formatPrice = () => { ... };
+    export function formatPrice(amount: number): string { ... }
     ```
 - **Default Export — только где требует фреймворк:**
   - Страницы в Astro (`.astro`) и Next.js App Router (`page.tsx`, `layout.tsx`, `error.tsx`).
-  - Конфигурационные файлы (`astro.config.mjs`, `prettier.config.mjs`).
+  - Конфигурационные файлы (`astro.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.mjs`).
   - В прикладных модулях и утилитах `default export` **запрещен**.
 - **Политика Barrel-файлов (`index.ts`):**
   - Разрешены **только как явные фасады** на границах изолированных модулей/фичей (`src/features/lead-form/index.ts`).
@@ -130,8 +131,8 @@ TypeScript и современный JavaScript — фундамент наде�
 ### 7. Именование файлов, сущностей и переменных
 
 #### Файловая структура:
-- **Утилиты, сервисы, константы, сторы:** строго `kebab-case` (`format-date.ts`, `api-client.ts`, `auth-store.ts`).
-- **Типы и схемы:** `kebab-case` с суффиксом роли (`lead.types.ts`, `lead.schema.ts`).
+- **Утилиты, сервисы, константы:** строго `kebab-case` (`format-date.ts`, `api-client.ts`, `query-client.ts`).
+- **Типы, схемы, сторы и ключи запросов:** `kebab-case` с суффиксом роли (`lead.types.ts`, `lead.schema.ts`, `cart.store.ts`, `product.keys.ts`).
 - **Директории:** строго `kebab-case` во всем проекте.
 
 #### Переменные и свойства:
@@ -161,8 +162,9 @@ TypeScript и современный JavaScript — фундамент наде�
 - **Обязательный `import type`:** любые типы и интерфейсы импортируются исключительно с ключевым словом `type`. Это гарантирует полное удаление импорта из рантайма и предотвращает циклические зависимости.
 - **Группировка импортов (ровно 1 пустая строка между группами):**
   1. Внешние библиотеки и вендоры (`zod`, `nanostores`).
-  2. Внутренние модули по путям-алиасам (`@/shared/...`, `@/features/...`, `@/entities/...`).
+  2. Внутренние модули по путям-алиасам (`@/shared/...`, `@/features/...`, `@/widgets/...`).
   3. Относительные локальные импорты (`./types`, `./utils`).
+- **Автоматический контроль:** порядок проверяет `perfectionist/sort-imports`, форму `import type` — `@typescript-eslint/consistent-type-imports`; исправление командой `eslint --fix` (конфиг — [docs/setup.md](../setup.md) §2.4).
 
 ---
 
@@ -174,7 +176,7 @@ TypeScript и современный JavaScript — фундамент наде�
     // ...
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Неизвестная ошибка';
-    logger.error(message);
+    console.error(message); // клиентское логирование: ADR 0014 §5
   }
   ```
 - **Запрет пустых блоков `catch`:** молчаливое подавление ошибок (silent fail) категорически запрещено.
@@ -212,7 +214,7 @@ TypeScript и современный JavaScript — фундамент наде�
 
 - **`undefined` — только для опциональности:**
   - Непереданные аргументы функций (`options?: RequestOptions`).
-  - Неинициализированные локальные переменные (`let timer: NodeJS.Timeout | undefined;`).
+  - Неинициализированные локальные переменные (`let timer: ReturnType<typeof setTimeout> | undefined;`).
 - **`null` — только для явного отсутствия данных в моделях и внешних контрактах:**
   - Модели данных, ответы API и структуры БД, где значение сброшено или отсутствует (`avatarUrl: string | null`).
   - Нативные возвраты DOM API (`document.querySelector` возвращает `Element | null`).
@@ -238,9 +240,19 @@ TypeScript и современный JavaScript — фундамент наде�
 
 - **Запрет прямого чтения `import.meta.env` и `process.env`:** в коде модулей, утилит и страниц запрещено обращаться к переменным окружения напрямую.
 - **Централизованный модуль конфигурации:**
-  - Все переменные объявляются и валидируются через схему Zod в единой точке входа: `src/shared/config/env.ts` (или через `astro:env`).
-  - Приложение немедленно падает при сборке/запуске, если отсутствует обязательная переменная или нарушен ее формат.
-  - Модули импортируют строго типизированный объект: `import { env } from '@/shared/config/env';`.
+  - Единая точка входа для публичных переменных — `src/shared/config/env.ts`; модули импортируют строго типизированный объект `import { env } from '@/shared/config/env';`.
+  - **Astro:** все переменные объявляются в `env.schema` файла `astro.config.ts` ([docs/setup.md](../setup.md) §3.1), Astro проверяет их при сборке. `env.ts` собирает публичные значения из `astro:env/client`:
+    ```ts
+    // src/shared/config/env.ts
+    import { PUBLIC_API_URL, PUBLIC_GA_ID, PUBLIC_SITE_URL, PUBLIC_YM_ID } from 'astro:env/client';
+
+    export const env = { PUBLIC_API_URL, PUBLIC_GA_ID, PUBLIC_SITE_URL, PUBLIC_YM_ID } as const;
+    ```
+  - **Next.js:** `env.ts` валидирует `process.env` схемой Zod и экспортирует тот же объект `env` (исключение из запрета прямого чтения — только внутри `env.ts`).
+  - Приложение немедленно падает при сборке или запуске, если отсутствует обязательная переменная или нарушен ее формат.
+- **Серверные секреты:**
+  - В Astro секреты (токены интеграций) объявляются в `env.schema` файла `astro.config.ts` с `access: 'secret'` и читаются из `astro:env/server` только в серверном коде (эндпоинты `src/pages/api/*`). В клиентский код они не попадают.
+  - Исключение из запрета чтения окружения: конфигурационные файлы сборки (`astro.config.ts`, `next.config.ts`).
 
 ---
 

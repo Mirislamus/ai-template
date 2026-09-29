@@ -2,13 +2,15 @@
 
 ## Контекст и цели
 
-Автоматизированный контроль качества кода предотвращает появление багов, гарантирует единообразный стиль и устраняет субъективные споры на код-ревью.
+Автоматизированный контроль качества кода предотвращает баги, гарантирует единый стиль и устраняет субъективные споры на код-ревью.
 Цели архитектурного стандарта:
-1. **Четкое разделение ответственности:** Prettier отвечает за форматирование (пробелы, переносы), ESLint — за логику и типы, Stylelint — за модульные стили.
-2. **Современный ESLint Flat Config:** использование актуального формата `eslint.config.mjs` со строгой типизацией и правилами хуков.
-3. **Порядок свойств и контроль специфичности в SCSS:** использование `stylelint-order` и запрет глубокой вложенности (максимум 3 уровня).
-4. **Бескомпромиссная проверка типов:** обязательное прохождение `astro check` / `tsc --noEmit` перед любым коммитом.
+1. **Четкое разделение ответственности:** Prettier отвечает за форматирование, ESLint — за логику, типы и порядок импортов, Stylelint — за модульные стили.
+2. **Современный ESLint Flat Config:** формат `eslint.config.mjs` с `defineConfig` из `eslint/config` и строгими правилами.
+3. **Порядок свойств и контроль специфичности в SCSS:** `stylelint-order` и ограничение вложенности (максимум 3 уровня).
+4. **Автоматический контроль правил ADR:** запреты `enum`, `any`, `!`, собственного React Context, `rem`/`em`, `transition: all` и произвольного `z-index` проверяются линтерами.
 5. **Единая точка входа качества:** команда `bun run check` с флагом `--max-warnings 0`.
+
+Все эталонные конфиги и команды находятся в [docs/setup.md](../setup.md) §2; этот документ фиксирует правила.
 
 ---
 
@@ -17,79 +19,51 @@
 ### 1. Форматирование кода: Prettier
 
 - **Правило невмешательства:** ESLint не проверяет правила форматирования. Все конфликты отключаются через `eslint-config-prettier`.
-- **Единая конфигурация `.prettierrc`:**
-  ```json
-  {
-    "printWidth": 120,
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "all",
-    "bracketSpacing": true,
-    "arrowParens": "avoid",
-    "endOfLine": "lf",
-    "plugins": ["prettier-plugin-astro"]
-  }
-  ```
-- **Обязательный плагин `prettier-plugin-astro`:** обеспечивает корректное форматирование фронтматтера и разметки в файлах `.astro`.
+- **Единственный источник настроек — корневой [.prettierrc](../../.prettierrc)** (`printWidth: 120`, `singleQuote`, `trailingComma: all`, `endOfLine: lf`, `arrowParens: avoid`).
+- **Плагин `prettier-plugin-astro`** обязателен в профиле Astro для фронтматтера и разметки `.astro`.
 
 ---
 
 ### 2. Линтинг JavaScript и TypeScript: ESLint Flat Config
 
-- **Формат конфигурации:** строго `eslint.config.mjs` (ESLint v9+).
-- **Обязательный стек плагинов:**
-  - `@typescript-eslint/eslint-plugin` + парсер `@typescript-eslint/parser`.
-  - `eslint-plugin-astro` — для шаблонов и клиентских скриптов Astro.
-  - `eslint-plugin-react-hooks` — строгий контроль правил хуков React.
-  - `eslint-config-prettier` — отключение дублирующих правил стилизации.
-- **Критические правила уровня `"error"`:**
-  - `@typescript-eslint/no-explicit-any: "error"` — тотальный запрет типа `any`.
-  - `@typescript-eslint/no-unused-vars: ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]` — запрет неиспользуемых переменных, кроме начинающихся с `_`.
-  - `react-hooks/rules-of-hooks: "error"` — запрет вызова хуков внутри условий или циклов.
-  - `react-hooks/exhaustive-deps: "error"` — запрет пропуска зависимостей в массивах хуков (защита от stale closures).
-  - `no-console: ["warn", { "allow": ["warn", "error"] }]` — запрет случайных `console.log` в продакшене.
+- **Формат конфигурации:** `eslint.config.mjs`, сборка через `defineConfig` (`eslint/config`).
+- **Обязательный стек плагинов:** `typescript-eslint`, `eslint-plugin-astro` (профиль Astro), `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`, `eslint-config-prettier`.
+- **Критические правила уровня `error`:**
+  - `@typescript-eslint/no-explicit-any` — запрет `any`.
+  - `@typescript-eslint/no-non-null-assertion` — запрет `!` (ADR 0004 §10).
+  - `@typescript-eslint/consistent-type-imports` — `import type` для типов (ADR 0004 §8).
+  - `@typescript-eslint/no-floating-promises` — запрет «забытых» промисов (правила с типами включены для `.ts` и `.tsx`).
+  - `@typescript-eslint/no-unused-vars` с исключением префикса `_`.
+  - `react-hooks/rules-of-hooks`, `react-hooks/exhaustive-deps`.
+  - `no-restricted-syntax` — запрет `enum` (ADR 0004 §4) и собственных `createContext`/`useContext` (ADR 0005 §9).
+  - `perfectionist/sort-imports` — порядок групп импортов ADR 0004 §8; автоисправление `eslint --fix`.
+- `no-console` на уровне `warn` (разрешены `warn` и `error`); из-за `--max-warnings 0` `console.log` блокирует проверку.
 
 ---
 
 ### 3. Линтинг стилей: Stylelint
 
-- **Конфигурация `.stylelintrc.mjs`:**
-  - Базовый набор правил: `stylelint-config-standard-scss`.
-  - Плагин порядка свойств: `stylelint-order`.
-- **Логический порядок CSS-свойств:**
-  1. Позиционирование (`position`, `top`, `right`, `z-index`).
-  2. Отображение и сетка (`display`, `flex`, `grid`, `gap`, `align-items`).
-  3. Блочная модель (`width`, `height`, `margin`, `padding`, `box-sizing`).
-  4. Типографика (`font-family`, `font-size`, `line-height`, `color`).
-  5. Визуальное оформление (`background`, `border`, `border-radius`, `box-shadow`).
-  6. Анимации и трансформации (`transform`, `transition`, `opacity`).
+- **Конфигурация `.stylelintrc.mjs`:** `stylelint-config-standard-scss` + плагин порядка свойств `stylelint-order`.
+- **Порядок CSS-свойств (единый список, закреплен в конфиге):**
+  1. Позиционирование (`position`, `inset`, `top`…`left`, `z-index`).
+  2. Отображение и сетка (`display`, `flex-*`, `grid-*`, `gap`, `align-items`, `justify-content`).
+  3. Блочная модель (`width`/`height` и их `min`/`max`, `margin`, `padding`, `box-sizing`, `overflow`).
+  4. Типографика (`font-*`, `line-height`, `text-*`, `color`).
+  5. Визуальное оформление (`background*`, `border*`, `box-shadow`, `outline`, `opacity`).
+  6. Анимации и интерактив (`transform`, `transition`, `animation`, `cursor`, `pointer-events`, `user-select`).
 - **Критические ограничения:**
-  - `selector-max-id: 0` — запрет селекторов по ID (`#`).
-  - `selector-no-qualifying-type: true` — запрет селекторов с тегами (`div.card`, `button.primary`).
-  - `max-nesting-depth: 3` — максимальная глубина вложенности SCSS не более 3 уровней.
-  - `color-named: "never"` — запрет строковых названий цветов (`red`, `blue`).
+  - `selector-max-id: 0` — запрет селекторов по ID.
+  - `selector-no-qualifying-type: true` — запрет `div.card`.
+  - `max-nesting-depth: 3`.
+  - `color-named: never` — запрет цветов по имени.
+  - `unit-disallowed-list: ['rem', 'em']` — запрет `rem` и `em` (ADR 0003 §2).
+  - `declaration-property-value-allowed-list` для `z-index` — только `var(--z-*)` или `auto` (ADR 0003 §13).
+  - `declaration-property-value-disallowed-list` — запрет `transition: all` (ADR 0003 §15).
 
 ---
 
-### 4. Стандартизация команд проверки в package.json
+### 4. Стандартизация команд проверки
 
-В `package.json` проекта фиксируется единый конвейер статического анализа:
-
-```json
-{
-  "scripts": {
-    "lint:js": "eslint . --max-warnings 0",
-    "lint:style": "stylelint \"src/**/*.{css,scss}\" --max-warnings 0",
-    "lint": "bun run lint:js && bun run lint:style",
-    "format": "prettier --write \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
-    "typecheck": "astro check",
-    "check": "bun run format:check && bun run lint && bun run typecheck"
-  }
-}
-```
-
-- **Флаг `--max-warnings 0`:** проект считается непрошедшим проверку, если линтер выдает хотя бы одно предупреждение.
-- **Единая команда `bun run check`:** обязательный финальный шаг верификации перед коммитом и в CI/CD пайплайнах.
+- Команды `lint`, `format`, `typecheck`, `check` описаны в [docs/setup.md](../setup.md) §2.6 и являются единой точкой входа.
+- **Флаг `--max-warnings 0`:** проект считается непрошедшим проверку при любом предупреждении линтера.
+- **Единая команда `bun run check`** (форматирование, линтеры, типы) — финальный шаг перед коммитом и обязательный шаг Quality Gate в CI ([ADR 0018](0018-deployment-and-caching.md) §4).

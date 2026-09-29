@@ -1,11 +1,3 @@
-Failed to write init script: open C:\Users\Windows 10\AppData\Local\Packages\ohmyposh.cli_96v55e8n804z4\LocalCache\Local\oh-my-posh\init.814522496948324317.ps1: Access is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows
-10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_light_color.xml' is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_color.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_icon.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\prefs.xml' is denied.
 # AGENTS.md
 
 ## Назначение
@@ -24,6 +16,8 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
 - `README.md` — установка и запуск;
 - `STATE.md` — текущая цель, блокеры и следующий шаг;
 - `docs/tech.md` — используемые технологии;
+- `docs/setup.md` — развертывание проекта и эталонные конфиги;
+- `docs/skills.md` — регламент AI-навыков;
 - `docs/design.md`, `docs/content.md`, `docs/seo.md`, `docs/quality.md` — глобальные правила;
 - `docs/tasks.md` — задачи и их состояние;
 - `docs/pages/` — требования отдельных страниц;
@@ -104,7 +98,7 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
 - Сохраняй существующий UI и поведение без прямого запроса на изменение.
 - Следуй `docs/design.md` и спецификациям страниц.
 - Не меняй тексты, информационную архитектуру, пользовательские сценарии, UX, стилистику и анимации по собственной инициативе.
-- Проверяй затронутые состояния: loading, success, empty, error и disabled.
+- Проверяй затронутые состояния: элемента, формы и данных (термины — `docs/design.md` §7).
 - Проверяй адаптивность, доступность, SEO и производительность пропорционально изменению.
 - После UI-изменений обязательно проведи доступную визуальную проверку.
 
@@ -187,7 +181,7 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
 
 - Перед стартом задачи агент обязан объявить, какие навыки из [docs/skills.md](docs/skills.md) будут применены и зачем (или написать «Скилы не требуются»).
 - Инструкции проекта имеют абсолютный приоритет над любыми рекомендациями скилов (запрет Tailwind/Radix).
-- В итоговом отчете обязательно указывается секция «Использованные скилы» с результатами их применения.
+- Как навыки направляются на файлы проекта, описано в `docs/skills.md`; результат применения указывается в итоговом отчете (пункт «Использованные скилы»).
 
 ## Итоговый отчёт
 
@@ -197,6 +191,5 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
 - **Где изменено** — файлы и ссылки на важные строки без механических деталей.
 - **Как реализовано** — краткий подход и важные решения.
 - **Проверки** — запущенные проверки, результаты и то, что проверить не удалось.
+- **Использованные скилы** — какие навыки применены и что каждый дал (или «Скилы не требовались»).
 - **Блокеры** — только при наличии рисков или требуемого действия пользователя.
-
-

@@ -1,68 +1,73 @@
 # Архитектура системы
 
-## Обзор и подход: Lite FSD
+## Обзор и подход: FSD-Lite
 
-В проекте используется адаптированная и практичная версия Feature-Sliced Design (Lite FSD). Она исключает избыточные слои (`processes`, `entities`), оставляя строгую и понятную иерархию для веб-сайтов и приложений.
+В проекте используется адаптированная версия Feature-Sliced Design (FSD-Lite). Она исключает избыточные слои (`processes`, `entities`), оставляя строгую иерархию для веб-сайтов и приложений. Этот файл — единственный источник структуры `src/`; остальные документы ссылаются на него.
 
-## Структура слоев (сверху вниз)
+## Структура слоев
 
 ```text
 src/
-├── pages/      # Страницы сайта (в Astro) или app/ (в Next.js App Router)
-├── layouts/    # Каркасы страниц и общие обертки (BaseLayout)
-├── widgets/    # Крупные самостоятельные блоки и секции (Header, Footer, Hero, FAQ)
-├── features/   # Интерактивные действия пользователя и формы (lead-form, theme-toggle, catalog-filter)
-└── shared/     # Переиспользуемый базис без привязки к конкретному контексту
-    ├── ui/     # Атомарный UI-кит (кнопки, инпуты, карточки, модалки)
-    ├── styles/ # Глобальные токены, переменные, миксины
-    ├── config/ # Валидация окружения (env.ts)
-    ├── api/    # Сетевой клиент ky, фабрики ключей TanStack Query
-    ├── lib/    # Утилиты, хелперы аналитики, кастомные хуки
-    └── types/  # Общие типы данных и DTO
+├── pages/            # Страницы (Astro) или app/ (Next.js App Router)
+├── layouts/          # Каркасы страниц и общие обертки (BaseLayout)
+├── widgets/          # Крупные блоки и секции (header, footer, hero, faq, benefits)
+├── features/         # Пользовательские сценарии и формы (lead-form, theme-toggle, catalog-filter)
+├── content/          # Контент Astro Content Collections (схемы — в src/content.config.ts)
+└── shared/           # Переиспользуемый базис без привязки к конкретному блоку
+    ├── ui/           # Атомарный UI-кит (кнопки, инпуты, карточки, модалки)
+    ├── styles/       # Токены, миксины, глобальные стили (_tokens.scss, _tools.scss, global.scss)
+    ├── config/       # Валидация окружения (env.ts)
+    ├── api/          # Клиент ky, QueryClient, фабрики ключей общего назначения
+    ├── lib/          # Утилиты, аналитика, безопасные обертки над Web API
+    ├── stores/       # Nano Stores (Astro) или Zustand (Next.js)
+    ├── i18n/         # Словари и утилита t()
+    └── types/        # Общие типы и DTO
 ```
+
+Внутри слоя `features` и `widgets` каждый модуль имеет свои подпапки по необходимости (`api/`, `model/`, `ui/`) и явный фасад `index.ts` (ADR 0004 §5).
 
 ### Зоны ответственности слоев
 
-1. **pages / app:** собирает страницу из готовых секций (`widgets`), настраивает SEO и мета-теги.
-2. **layouts:** каркас документа, подключение шапки, подвала и общих провайдеров.
-3. **widgets:** визуально цельные блоки страницы (секции лендинга, шапка, подвал). Виджет может объединять несколько `features` и элементы `shared`.
-4. **features:** законченные пользовательские сценарии с бизнес-логикой (форма заявки, фильтрация, переключатель языка).
-5. **shared:** фундамент проекта, не содержащий бизнес-специфики конкретного блока.
+1. **pages / app:** собирает страницу из готовых секций (`widgets`), задает SEO и мета-теги.
+2. **layouts:** каркас документа, подключение шапки, подвала и общих скриптов.
+3. **widgets:** визуально цельные блоки страницы. Виджет может объединять несколько `features` и элементы `shared`.
+4. **features:** законченные пользовательские сценарии с бизнес-логикой (форма заявки, фильтрация, переключатель языка), включая свои TanStack Query хуки в `api/`.
+5. **shared:** фундамент проекта без бизнес-специфики конкретного блока.
 
 ## Главное правило импортов
 
-**Импорты разрешены только строго сверху вниз:**
+Импорты разрешены только сверху вниз:
 `pages` → `layouts` → `widgets` → `features` → `shared`.
 
 - Нижний слой ничего не знает о верхнем.
-- **Запрещены горизонтальные импорты:** модуль из `features` не может импортировать другой модуль из `features`. Модуль из `widgets` не импортирует соседний `widgets`. Если логика нужна обоим — она выносится в `shared`.
+- Запрещены горизонтальные импорты: модуль из `features` не импортирует другой модуль из `features`, модуль из `widgets` не импортирует соседний `widgets`. Если логика нужна обоим, она выносится в `shared`.
 
 ## Движение данных и формы
 
-- **Формы (`features`):** содержат валидацию Zod, маску `imask`, вызов API через `ky` и отработку 5 состояний интерфейса.
-- **Состояние UI:** хранится максимально локально внутри конкретного компонента.
-- **Глобальное состояние:** выносится в `shared/stores/` через Nano Stores (в Astro) или Zustand (в Next.js).
-- **URL как SSOT:** параметры фильтров, пагинации и поиска синхронизируются со строкой запроса (`URLSearchParams`).
+- **Формы (`features`):** валидация Zod, маска `imask`, вызов API через `ky` и TanStack Query, пять состояний формы (ADR 0008).
+- **Состояние UI:** хранится максимально локально внутри компонента.
+- **Глобальное состояние:** `shared/stores/` через Nano Stores (Astro) или Zustand (Next.js).
+- **URL как SSOT:** фильтры, пагинация и поиск синхронизируются со строкой запроса (`URLSearchParams`).
 
-## Архитектурные решения (Реестр из 18 ADR)
+## Реестр архитектурных решений
 
-Все инженерные решения формализованы в каталоге `docs/decisions/`:
-- `0001-project-architecture.md` — Профили Astro (SSG) vs Next.js (SSR), FSD-Lite и гибридный рендеринг.
-- `0002-html-standards.md` — Семантика W3C HTML5, доступность a11y, нативный `<dialog>`, `:focus-visible`, Skip Link.
-- `0003-scss-standards.md` — SCSS Modules, семантическая шкала Z-Index (1–800), BEM-нотация.
-- `0004-ts-js-standards.md` — Строгий TypeScript / JavaScript, запрет `any`/`enum`, методы ES2023+.
-- `0005-react-standards.md` — React 19, плоские импорты, `ref` без `forwardRef`, отказ от React Context.
-- `0006-state-management.md` — 4 уровня стейта, Nano Stores (`$`), Zustand, URL как единственный источник истины.
-- `0007-assets-and-media.md` — Оптимизация AVIF/WebP, нулевой CLS, самохостинг WOFF2, `lucide-react`.
-- `0008-forms-and-api.md` — Сетевой клиент `ky`, TanStack Query, формы, Honeypot-антиспам, безопасность.
-- `0009-tooling-and-linting.md` — Prettier, ESLint Flat Config, Stylelint, единый конвейер `bun run check`.
-- `0010-third-party-libraries-policy.md` — Актуальность пакетов (Latest Stable), черный/белый списки, аудит.
-- `0011-git-workflow-and-commits.md` — Conventional Commits, атомарность, GitHub Flow, безопасность.
-- `0012-build-and-package-manager.md` — Пакетный менеджер Bun, бюджет бандла, `build:analyze`, кроссплатформенность.
-- `0013-seo-standards.md` — Каноникалы, автогенерация `sitemap.xml`, JSON-LD, `schema-dts`, Google Rich Results.
-- `0014-testing-and-qa.md` — Пирамида тестирования, Vitest, Playwright smoke-тесты, W3C валидация, Definition of Done.
-- `0015-analytics-and-tracking.md` — Отложенная аналитика без просадки Lighthouse, фасад `trackEvent`, Cookie Consent.
-- `0016-i18n-standards.md` — Архитектура интернационализации, TS-словари, `astro:i18n`, утилита `t()`.
-- `0017-motion-and-animations.md` — GPU-анимации (`transform`/`opacity`), `prefers-reduced-motion`, `IntersectionObserver`.
-- `0018-deployment-and-caching.md` — HTTP `Cache-Control` (`immutable`/`no-cache`), Edge CDN, Nginx/SSH deploy.
+Каталог `docs/decisions/` — единственный реестр ADR:
 
+- `0001-project-architecture.md` — профили Astro и Next.js, FSD-Lite, гидратация, рендеринг, контент.
+- `0002-html-standards.md` — семантика HTML5, доступность, нативный `<dialog>`, Skip Link.
+- `0003-scss-standards.md` — SCSS Modules, токены, z-index, миксины, брейкпоинты.
+- `0004-ts-js-standards.md` — строгий TypeScript и JavaScript, именование, импорты.
+- `0005-react-standards.md` — React 19, хуки, мемоизация, провайдеры библиотек.
+- `0006-state-management.md` — уровни состояния, Nano Stores, Zustand, URL.
+- `0007-assets-and-media.md` — изображения, шрифты, иконки, фавиконки.
+- `0008-forms-and-api.md` — `ky`, TanStack Query, формы, антиспам, безопасность.
+- `0009-tooling-and-linting.md` — Prettier, ESLint, Stylelint.
+- `0010-third-party-libraries-policy.md` — политика версий, черный и белый списки.
+- `0011-git-workflow-and-commits.md` — Conventional Commits, ветки, безопасность Git.
+- `0012-build-and-package-manager.md` — Bun, бюджет бандла, окружение.
+- `0013-seo-standards.md` — канонические URL, sitemap, JSON-LD, валидация.
+- `0014-testing-and-qa.md` — пирамида тестов, Definition of Done.
+- `0015-analytics-and-tracking.md` — отложенная аналитика, фасад `trackEvent`, уведомление о cookie.
+- `0016-i18n-standards.md` — словари, `astro:i18n`, `Intl`.
+- `0017-motion-and-animations.md` — GPU-анимации, `prefers-reduced-motion`, Scroll Reveal.
+- `0018-deployment-and-caching.md` — кеширование, деплой, Nginx, CI/CD.

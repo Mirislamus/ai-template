@@ -199,17 +199,33 @@ React используется для интерактивных модулей 
   1. Функция передается в компонент, оптимизированный через `React.memo`.
   2. Функция входит в массив зависимостей `useEffect`.
 - **`React.memo`:** применять точечно только к тяжелым листовым компонентам (графики, комплексные таблицы) с частыми ререндерами родителя.
+- **React Compiler не включается** ни в одном профиле; мемоизация выполняется вручную по правилам выше. В отдельном Next.js-проекте с тяжелым интерактивом компилятор включается флагом только по решению владельца проекта.
 
 ---
 
-### 9. Полный отказ от React Context
+### 9. Отказ от собственного React Context
 
-- **Тотальный запрет `createContext` и `useContext`:**
-  - Исключение каскадных ререндеров и матрешек провайдеров (Provider Hell).
+- **Запрещено объявлять собственные контексты** (`createContext`, `useContext`; контроль: ESLint `no-restricted-syntax`):
+  - Исключаются каскадные ререндеры и матрешки провайдеров (Provider Hell).
   - В архитектуре Astro Islands провайдеры контекста не проникают сквозь границы изолированных островов.
-- **Альтернативы:**
-  - Межкомпонентный и межостровной глобальный стейт — строго **Nano Stores** (`$cart`, `$auth`).
-  - Сложные веб-приложения на Next.js — строго **Zustand** с точечными селекторами.
+- **Провайдеры сторонних библиотек разрешены**, если библиотека их требует (`QueryClientProvider` из TanStack Query, `FormProvider` из React Hook Form). Они не создают собственного контекста приложения.
+- **Паттерн для Astro:** каждый остров — отдельное React-дерево, поэтому остров, которому нужен TanStack Query, оборачивается в общий `QueryProvider`, использующий единый экземпляр `queryClient` (`src/shared/api/query-client.ts`, ADR 0008 §2). Кеш общий на всю страницу.
+  ```tsx
+  // src/shared/api/query-provider.tsx
+  import { QueryClientProvider } from '@tanstack/react-query';
+  import type { ReactNode } from 'react';
+
+  import { queryClient } from './query-client';
+
+  type QueryProviderProps = { children: ReactNode };
+
+  export function QueryProvider({ children }: QueryProviderProps) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+  ```
+- **Альтернативы для собственных данных:**
+  - Межкомпонентный и межостровной глобальный стейт — **Nano Stores** (`$cart`, `$auth`).
+  - Сложные веб-приложения на Next.js — **Zustand** с точечными селекторами.
   - Локальное состояние виджетов — явные пропсы или нативные HTML-элементы (`<details>`, `<dialog>`).
 
 ---
@@ -227,32 +243,19 @@ React используется для интерактивных модулей 
 
 ---
 
-### 11. Асинхронные запросы и отмена через `AbortController`
+### 11. Асинхронные запросы и отмена
 
-- **Обязательный `AbortController` для эффектов с сетевыми запросами:**
-  - Для предотвращения гонок данных (Race Conditions) при смене фильтров, поиска или параметров запроса:
-    ```tsx
-    useEffect(() => {
-      const controller = new AbortController();
-
-      async function fetchData() {
-        try {
-          const response = await fetch(`/api/items?q=${query}`, {
-            signal: controller.signal,
-          });
-          if (!response.ok) throw new Error('Ошибка сети');
-          const data = await response.json();
-          setItems(data);
-        } catch (error: unknown) {
-          if (error instanceof DOMException && error.name === 'AbortError') return;
-          setErrorMessage('Не удалось загрузить данные');
-        }
-      }
-
-      fetchData();
-      return () => controller.abort();
-    }, [query]);
-    ```
+- **Сетевые запросы выполняются только через хуки TanStack Query** ([ADR 0008](0008-forms-and-api.md) §2). Query передает `signal` в `queryFn`, поэтому запрос отменяется при смене ключа или размонтировании, и гонки данных (Race Conditions) исключены:
+  ```tsx
+  export function useProducts(filters: ProductFilters) {
+    return useQuery({
+      queryKey: productKeys.list(filters),
+      queryFn: ({ signal }) => fetchProducts(filters, signal),
+    });
+  }
+  ```
+- **Запрещено** писать ручной `useEffect` + `fetch` + `useState` для загрузки данных.
+- **`AbortController` вручную** нужен только в эффектах вне TanStack Query (например, разовая подписка на поток): контроллер создается внутри эффекта, а `controller.abort()` вызывается в функции очистки.
 
 ---
 
@@ -291,12 +294,20 @@ React используется для интерактивных модулей 
   - Алиас для SCSS Modules: строго `import s from './Component.module.scss';`.
   - Запрещено склеивать классы шаблонными строками с пробелами (`${s.btn} ${s.active}`).
 - **Динамические стили через CSS Custom Properties:**
-  - Запрещено вычислять стили инлайново в атрибуте `style={{ width: `${progress}%` }}`.
-  - Передавать динамику строго через CSS-переменные с плоским типом `CSSProperties`:
-    ```tsx
-    import type { CSSProperties } from 'react';
+  - Запрещено вычислять стили инлайново в атрибуте `style`, например `width` от значения прогресса.
+  - Динамика передается строго через CSS-переменные. Тип `CSSProperties` расширяется один раз на проект, поэтому приведение `as` не нужно:
+    ```ts
+    // src/shared/types/css-properties.d.ts
+    import 'react';
 
-    <div style={{ '--progress': `${progress}%` } as CSSProperties} className={cx(s.bar)} />
+    declare module 'react' {
+      interface CSSProperties {
+        [key: `--${string}`]: string | number | undefined;
+      }
+    }
+    ```
+    ```tsx
+    <div style={{ '--progress': `${progress}%` }} className={s.bar} />
     ```
 
 ---
@@ -318,4 +329,3 @@ React используется для интерактивных модулей 
     export { Button } from './Button';
     export type { ButtonProps } from './Button.types';
     ```
-

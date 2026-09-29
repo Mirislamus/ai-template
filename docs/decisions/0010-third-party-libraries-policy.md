@@ -1,4 +1,4 @@
-﻿# ADR 0010: Политика управления сторонними зависимостями и библиотеками
+# ADR 0010: Политика управления сторонними зависимостями и библиотеками
 
 ## Контекст и цели
 
@@ -21,9 +21,9 @@
   - Запрещено использовать устаревшие мажорные версии фреймворков и библиотек.
   - Запрещены нестабильные пре-релизы (`alpha`, `beta`, `rc`, `canary`) в продакшене без технического согласования.
 - **Современные стандарты языка:**
-  - Использовать самую современную спецификацию ECMAScript, поддерживаемую текущими стабильными рантаймами (Bun 1.4+ / Node.js 24+) и современными браузерами (Baseline).
+  - Использовать самую современную спецификацию ECMAScript, поддерживаемую текущими стабильными рантаймами (актуальный стабильный Bun и Node.js LTS не ниже 24) и современными браузерами (Baseline).
 - **Контроль блокировок (Lockfile):**
-  - Файл блокировок `bun.lock` (или `bun.lockb`) **обязан быть закоммичен в Git**.
+  - Файл блокировок `bun.lock` **обязан быть закоммичен в Git**.
   - Это обеспечивает повторяемость и побайтовую идентичность сборок у всех разработчиков и на CI/CD серверах.
 - **Регулярный аудит:**
   - Запуск `bun outdated` и `bun update` для своевременного обновления минорных версий.
@@ -37,7 +37,7 @@
 
 | Категория | Запрещенные пакеты | Нативная или одобренная альтернатива |
 |---|---|---|
-| **UI-библиотеки** | MUI, Ant Design, Chakra UI, Semantic UI | SCSS Modules + дизайн-токены |
+| **UI-библиотеки** | MUI, Ant Design, Chakra UI, Semantic UI, Tailwind CSS | SCSS Modules + дизайн-токены |
 | **Headless UI** | Radix UI, Headless UI, Ariakit | Нативные теги `<dialog>`, `<details>`, `<summary>`, `<select>` |
 | **Утилиты данных** | Lodash, Underscore, Ramda | Нативные методы JS/ES2023+ (`.toSorted()`, `Object.groupBy()`, `structuredClone()`) |
 | **Даты и время** | Moment.js, Day.js, date-fns | Нативные объекты `Date`, `Intl.DateTimeFormat`, `Intl.RelativeTimeFormat` |
@@ -71,6 +71,11 @@
   - `zustand` — для глобального стейта в Next.js.
 - **Отказоустойчивость:**
   - `react-error-boundary` — локализация падений компонентов.
+- **Безопасность и SEO:**
+  - `dompurify` — санитизация сырого HTML.
+  - `schema-dts` — типы JSON-LD (devDependency).
+- **Интеграции и адаптеры Astro:** `@astrojs/react`, `@astrojs/sitemap`, `@astrojs/check`, адаптеры `@astrojs/node`, `@astrojs/cloudflare`, `@astrojs/vercel`, `@astrojs/netlify` (по выбранному хостингу).
+- **Инструменты разработки (devDependencies):** `typescript`, `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`, `eslint-config-prettier`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard-scss`, `stylelint-order`, `sass`, `vitest`, `happy-dom`, `@playwright/test`, `html-validate`, `rollup-plugin-visualizer`, `@next/bundle-analyzer`.
 
 ---
 

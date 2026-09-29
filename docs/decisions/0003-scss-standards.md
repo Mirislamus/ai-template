@@ -5,25 +5,25 @@
 Стилизация проекта обязана быть модульной, предсказуемой, производительной и удобной для поддержки.
 Цели стандарта:
 1. **Изоляция:** исключить глобальные конфликты классов и перебивания селекторов (CSS Modules).
-2. **Предсказуемость единиц:** строгий отказ от `rem` и `em` в пользу точного `px`-позиционирования и современных адаптивных единиц (`vw`, `vh`, `dvh`, `%`).
-3. **Mobile-First адаптивность:** базовые стили пишутся для мобильных устройств, а расширение идет вверх через современный Range Syntax (`@media (width >= ...)`).
-4. **Устранение тач-артефактов:** предотвращение залипания псевдокласса `:hover` на смартфонах.
-5. **Централизация дизайн-токенов:** единый источник правды для цветов, отступов, радиусов и теней через CSS Custom Properties.
+2. **Предсказуемость единиц:** строгий отказ от `rem` и `em` в пользу точного `px` и современных адаптивных единиц (`vw`, `vh`, `dvh`, `%`).
+3. **Mobile-First адаптивность:** базовые стили пишутся для мобильных устройств, расширение идет вверх через Range Syntax (`@media (width >= ...)`).
+4. **Устранение тач-артефактов:** предотвращение залипания `:hover` на смартфонах.
+5. **Централизация дизайн-токенов:** единый источник правды для цветов, отступов, радиусов, теней, слоев и анимаций через CSS Custom Properties. Имена и смысл токенов — [docs/design.md](../design.md), эталонный файл — [docs/setup.md](../setup.md) §4.
 
 ---
 
-## Архитектура файлов стилей (`src/styles/`)
+## Архитектура файлов стилей (`src/shared/styles/`)
 
 Глобальная база стилей состоит строго из трех файлов без лишних подпапок:
 
 ```text
-src/styles/
-├── _tokens.scss  # Все дизайн-токены: переменные :root (цвета, шрифты, радиусы, отступы, z-index)
-├── _tools.scss   # Служебные миксины и функции (hover, reduced-motion, focus-ring, сбросы)
-└── global.scss   # Сброс стилей (CSS Reset), стили html/body, типографика заголовков, сетка .container
+src/shared/styles/
+├── _tokens.scss  # Все дизайн-токены: переменные :root (цвета, шрифты, радиусы, отступы, z-index, анимации)
+├── _tools.scss   # Sass-переменные брейкпоинтов и миксины (up, down, hover, reduced-motion, focus-ring и др.)
+└── global.scss   # @layer reset/base, стили html/body, типографика, .container, .visually-hidden, .skip-link
 ```
 
-Локальные стили компонентов хранятся строго рядом с компонентом в файле `[Component].module.scss`.
+Локальные стили компонентов хранятся рядом с компонентом в файле `[Component].module.scss`. Инструменты подключаются через алиас: `@use '@/shared/styles/tools' as *;`.
 
 ---
 
@@ -32,54 +32,59 @@ src/styles/
 ### 1. Адаптивность: Mobile-First и Range Syntax
 
 Стили пишутся по принципу прогрессивного улучшения:
-- **Базовые стили компонента** создаются для мобильных экранов (до 576px).
-- Расширение для больших экранов оформляется через нативный **Range Syntax**:
+- **Базовые стили компонента** создаются для мобильных экранов (нижняя граница поддержки — 360px).
+- Расширение для больших экранов оформляется миксинами `up()` и `down()` из `_tools.scss`, которые раскрываются в нативный Range Syntax (`@media (width >= 768px)`). Прямые числовые значения в медиазапросах запрещены.
 
 ```scss
+@use '@/shared/styles/tools' as *;
+
 // Базовые стили для мобильных (от 0px)
 .grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 
   // Планшеты (от 768px)
-  @media (width >= 768px) {
+  @include up(md) {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    gap: var(--space-6);
   }
 
-  // Десктоп (от 1024px)
-  @media (width >= 1024px) {
+  // Ноутбуки (от 1024px)
+  @include up(lg) {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  // Широкий экран (от 1280px)
-  @media (width >= 1280px) {
+  // Десктоп (от 1280px)
+  @include up(xl) {
     grid-template-columns: repeat(4, 1fr);
-    gap: 32px;
+    gap: var(--space-8);
   }
 }
 ```
 
-#### Стандартная шкала контрольных точек (Breakpoints):
-- `576px` — большие смартфоны (горизонтальная ориентация);
-- `768px` — планшеты (появление колоночной сетки);
-- `1024px` — ноутбуки и небольшие экраны (десктопная шапка и меню);
-- `1280px` — стандартный десктоп (максимальная ширина контентного контейнера);
-- `1440px` — широкие мониторы (опционально).
+#### Шкала брейкпоинтов (единственная в проекте):
+- `sm: 576px` — большие смартфоны (горизонтальная ориентация);
+- `md: 768px` — планшеты (граница переключения мобильного меню на десктопную навигацию);
+- `lg: 1024px` — ноутбуки и небольшие экраны;
+- `xl: 1280px` — стандартный десктоп (максимальная ширина контейнера);
+- `2xl: 1440px` — широкие мониторы.
+
+Брейкпоинты объявляются Sass-переменными в `_tools.scss` (CSS-переменные внутри `@media` не работают). Миксин `down(md)` раскрывается в `@media (width < 768px)`, поэтому `up(md)` и `down(md)` никогда не пересекаются. В JS-атрибутах (`client:media`) используется тот же синтаксис: `(width < 768px)`.
 
 ---
 
 ### 2. Единицы измерения: px и адаптивные единицы
 
-- **`em` и `rem` категорически запрещены:** исключает накопление ошибок масштабирования шрифтов и непредсказуемые скачки размеров.
-- **`px`:** основной стандарт для размеров шрифтов, отступов (padding, margin, gap), границ (border), радиусов скругления (border-radius).
+- **`em` и `rem` категорически запрещены** (контроль: Stylelint `unit-disallowed-list`): исключает накопление ошибок масштабирования шрифтов и непредсказуемые скачки размеров.
+- **`px`:** основной стандарт для размеров шрифтов, отступов (padding, margin, gap), границ (border), радиусов скругления. Значения отступов берутся из токенов `var(--space-*)`.
 - **Адаптивные единицы:**
   - `%` — для относительной ширины контейнеров и колонок.
   - `vw` / `vh` — для привязки к размеру экрана.
-  - `dvh` (Dynamic Viewport Height) и `svh` — для высоты полноэкранных блоков на мобильных браузерах (учитывают появление/скрытие адресной строки).
+  - `dvh` (Dynamic Viewport Height) и `svh` — для высоты полноэкранных блоков на мобильных браузерах.
   - `cqw` / `cqh` — для Container Queries при изоляции карточек.
+- Единицы времени (`ms`, `s`) и безразмерный `line-height` разрешены.
 
 ---
 
@@ -90,11 +95,11 @@ src/styles/
 ```scss
 // Hero.module.scss
 .root {
-  padding-block: 60px;
+  padding-block: var(--space-16);
 }
 
 .title {
-  font-size: 32px;
+  font-size: var(--font-size-h1);
   font-weight: 700;
 }
 
@@ -102,62 +107,34 @@ src/styles/
   display: inline-flex;
 
   &.active {
-    background-color: var(--color-primary);
+    background-color: var(--color-accent);
   }
 }
 ```
-В JSX: `className={s.title}`, `className={clsx(s.button, isActive && s.active)}`.
+В JSX: `className={s.title}`, `className={cx(s.button, isActive && s.active)}`.
 
 ---
 
 ### 4. Дизайн-токены: CSS Custom Properties
 
-Все переменные оформляются через нативные CSS Custom Properties в `src/styles/_tokens.scss`:
+Все переменные объявляются нативными CSS Custom Properties в `src/shared/styles/_tokens.scss`:
 
-- **Цвета (HEX / RGB):** объявляются в формате HEX или RGB для прямого копирования из Figma.
-- **Прозрачность:** формируется на лету через современную нативную функцию `color-mix()`:
+- **Полный перечень и семантика токенов** — [docs/design.md](../design.md): `--space-*`, `--color-*` (семантические роли), `--font-size-*`, `--line-height-*`, `--radius-*`, `--shadow-*`, `--z-*`, `--motion-*`, `--container-*`.
+- **Цвета:** объявляются в HEX или RGB для прямого копирования из Figma. Прямые HEX-значения в модулях компонентов запрещены, используются только токены.
+- **Прозрачность:** формируется на лету через `color-mix()`:
   ```scss
-  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
   ```
-- **Sass-переменные (`$var`):** разрешены только для build-time вычислений (значения в медиазапросах, если требуется).
-
-Пример токенов (`_tokens.scss`):
-```scss
-:root {
-  /* Цветовая палитра (HEX / RGB) */
-  --color-page: #ffffff;
-  --color-surface: #f8fafc;
-  --color-surface-raised: #ffffff;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-
-  /* Радиусы */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-
-  /* Отступы сетки и контейнер */
-  --container-max-width: 1280px;
-  --container-padding: 16px;
-
-  /* Переходы и анимации */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-}
-```
+- **Sass-переменные (`$var`):** разрешены только для build-time значений (брейкпоинты для медиазапросов).
 
 ---
 
 ### 5. Обязательный миксин для :hover на смартфонах
 
-Для исключения «залипания» hover-эффектов при тапе пальцем все наведения оборачиваются в миксин `@include hover`:
+Для исключения «залипания» hover-эффектов при тапе пальцем все наведения оборачиваются в единый миксин `@include hover`:
 
 ```scss
-// src/styles/_tools.scss
+// src/shared/styles/_tools.scss
 @mixin hover {
   @media (hover: hover) and (pointer: fine) {
     @content;
@@ -168,17 +145,17 @@ src/styles/
 Применение в компонентах:
 ```scss
 .link {
-  color: var(--color-text);
-  transition: color var(--transition-fast);
+  color: var(--color-text-primary);
+  transition: color var(--motion-fast) var(--ease-out);
 
   @include hover {
     &:hover {
-      color: var(--color-primary);
+      color: var(--color-accent);
     }
   }
 
   &:active {
-    color: var(--color-primary-hover);
+    color: var(--color-accent-hover);
   }
 }
 ```
@@ -187,10 +164,10 @@ src/styles/
 
 ### 6. Уважение к доступности: prefers-reduced-motion
 
-Все анимации, плавные переходы и скроллы обязаны отключаться для пользователей, чувствительных к движению:
+Все анимации, плавные переходы и скроллы обязаны отключаться для пользователей, чувствительных к движению. Глобальный сброс лежит в `global.scss` (ADR 0017 §2), а для точечных случаев есть миксин:
 
 ```scss
-// src/styles/_tools.scss
+// src/shared/styles/_tools.scss
 @mixin reduced-motion {
   @media (prefers-reduced-motion: reduce) {
     @content;
@@ -203,21 +180,23 @@ src/styles/
 ### 7. Запрет !important
 
 Использование `!important` категорически **запрещено**, кроме:
-1. Утилитного класса `.visually-hidden` (для гарантии скрытия от экрана).
-2. Вынужденного перебивания жестких инлайн-стилей сторонних виджетов (карты, плееры).
+1. Утилитного класса `.visually-hidden` (гарантия скрытия от экрана).
+2. Глобального сброса анимаций в блоке `prefers-reduced-motion` в `global.scss` (ADR 0017 §2).
+3. Вынужденного перебивания жестких инлайн-стилей сторонних виджетов (карты, плееры).
 
 ---
 
 ### 8. Каскадные слои CSS (@layer)
 
-Для полного контроля специфичности селекторов и предотвращения конфликтов глобальные стили в `src/styles/global.scss` организуются через директиву `@layer`:
+В `src/shared/styles/global.scss` глобальные стили сброса и базовые стили организуются в слои:
 
 ```scss
-@layer reset, base, components, utilities;
+@layer reset, base;
 
 @layer reset {
-  /* Нормализация, box-sizing: border-box, сброс отступов у списков/заголовков */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -225,76 +204,73 @@ src/styles/
 }
 
 @layer base {
-  /* Стили html, body, типографика h1-h6, оформление ссылок */
   html {
-    min-width: 320px;
-    background-color: var(--color-page);
-    color: var(--color-text);
-    overflow-x: clip; /* Защита от горизонтального скролла без поломки sticky */
-  }
-}
-
-@layer components {
-  /* Место для стилей компонентов (CSS Modules автоматически попадают сюда) */
-}
-
-@layer utilities {
-  /* Сервисные утилиты с наивысшим приоритетом: .container, .visually-hidden, .skip-link */
-  .container {
-    width: min(var(--container-max), calc(100% - (var(--container-gutter) * 2)));
-    margin-inline: auto;
+    scrollbar-gutter: stable;
+    background-color: var(--color-bg-page);
+    color: var(--color-text-primary);
   }
 }
 ```
 
+- **Стили CSS Modules не входят ни в один слой** (они попадают в общий каскад без слоя) и по правилам каскада всегда сильнее любых слоев. Поэтому слои используются только для сброса и базовых стилей: компонент всегда может их переопределить без роста специфичности.
+- **Утилиты** (`.container`, `.visually-hidden`, `.skip-link`) объявляются в `global.scss` вне слоев:
+```scss
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding-inline: var(--container-gutter);
+}
+```
+- **Запрещено** маскировать горизонтальный скролл через `overflow-x: hidden/clip` на `html` или `body` (docs/quality.md §1): переполнение устраняется в конкретном блоке.
+
 ---
 
-### 9. Порядок сортировки CSS-свойств (Концентрический: Снаружи-Внутрь)
+### 9. Порядок сортировки CSS-свойств
 
-Все свойства внутри селектора записываются строго по группам от внешнего позиционирования к внутреннему содержанию:
-
-1. **Позиционирование:** `position`, `top`, `right`, `bottom`, `left`, `z-index`, `inset`.
-2. **Дисплей и геометрия коробки:** `display`, `flex-direction`, `justify-content`, `align-items`, `grid-template-*`, `gap`, `width`, `min-width`, `max-width`, `height`, `padding`, `margin`, `overflow`.
-3. **Визуальное оформление:** `background`, `border`, `border-radius`, `box-shadow`, `opacity`.
-4. **Типографика:** `font-family`, `font-size`, `font-weight`, `line-height`, `color`, `text-align`, `text-decoration`.
-5. **Анимации и интерактив:** `transition`, `transform`, `cursor`, `pointer-events`, `user-select`.
-6. **Вложенные псевдоклассы и медиазапросы:** `&:hover`, `&:focus-visible`, `&.active`, `@media (width >= ...)`.
+Порядок свойств внутри селектора закреплен единым списком в конфиге Stylelint ([docs/setup.md](../setup.md) §2.5, правило `order/properties-order`; описание — [ADR 0009](0009-tooling-and-linting.md) §3). Группы: позиционирование, отображение и сетка, блочная модель, типографика, визуальное оформление, анимации и интерактив; затем вложенные состояния и медиазапросы.
 
 Пример эталонного оформления правила:
 ```scss
+@use '@/shared/styles/tools' as *;
+
 .card {
   /* 1. Позиционирование */
   position: relative;
-  z-index: 1;
+  z-index: var(--z-base);
 
-  /* 2. Коробка */
+  /* 2. Отображение и сетка */
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  padding: 24px;
+  gap: var(--space-4);
 
-  /* 3. Визуал */
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  /* 3. Блочная модель */
+  width: 100%;
+  padding: var(--space-6);
 
   /* 4. Типографика */
-  color: var(--color-text);
+  color: var(--color-text-primary);
 
-  /* 5. Интерактив */
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  /* 5. Визуальное оформление */
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
 
-  /* 6. Состояния и адаптивность */
+  /* 6. Анимации и интерактив */
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
+
+  /* 7. Состояния и адаптивность */
   @include hover {
     &:hover {
-      border-color: var(--color-primary);
-      box-shadow: var(--shadow-hover);
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-md);
     }
   }
 
-  @media (width >= 768px) {
-    padding: 32px;
+  @include up(md) {
+    padding: var(--space-8);
   }
 }
 ```
@@ -303,12 +279,12 @@ src/styles/
 
 ### 10. Стандарты типографики и локальных шрифтов
 
-- **Только локальные шрифты:** шрифты скачиваются в репозиторий (`src/assets/fonts/`), использование сторонних CDN (Google Fonts) через внешний `<link>` или CSS `@import` запрещено для защиты от задержек сети и соблюдения приватности.
-- **Формат .woff2:** используется исключительно компактный формат `woff2`.
-- **Обязательный font-display: swap:** текст отображается мгновенно системным шрифтом до окончания загрузки кастомного (устранение FOIT — Flash of Invisible Text).
-- **Ограничение начертаний:** подключаются строго используемые веса (например: Regular 400 и SemiBold 600).
+- **Только локальные шрифты:** файлы хранятся в `public/fonts/` и подключаются по URL `/fonts/...`. Использование сторонних CDN (Google Fonts) через внешний `<link>` или CSS `@import` запрещено ради скорости и приватности.
+- **Формат `.woff2`:** используется исключительно компактный формат.
+- **Обязательный `font-display: swap`:** текст отображается системным шрифтом до окончания загрузки кастомного (устранение FOIT).
+- **Ограничение начертаний:** подключаются только используемые веса (например, Regular 400 и SemiBold 600).
 
-Пример подключения (`_tokens.scss` или отдельный файл шрифтов):
+Пример подключения (`global.scss`):
 ```scss
 @font-face {
   font-family: 'Inter';
@@ -331,51 +307,27 @@ src/styles/
 
 ### 11. Флюидная адаптивная типографика (clamp)
 
-Для исключения ручного переписывания размеров шрифтов в десятках медиазапросов крупные заголовки и лид-абзацы настраиваются через нативную функцию `clamp(min, preferred, max)` в токенах `_tokens.scss`:
+Крупные заголовки настраиваются через нативную функцию `clamp(min, preferred, max)` в токенах `_tokens.scss`:
 
-- **Минимальный порог (`px`):** гарантирует читаемость и предотвращает сплющивание заголовка на узких экранах (320px–375px).
-- **Динамический множитель (`vw`):** обеспечивает плавное масштабирование пропорционально экрану без резких скачков.
+- **Минимальный порог (`px`):** гарантирует читаемость на узких экранах (от 360px).
+- **Динамический множитель (`vw` + `px`):** плавное масштабирование без скачков.
 - **Максимальный порог (`px`):** ограничивает рост шрифта на больших мониторах.
-- **Базовый текст (`body`):** фиксируется на стабильных `16px` (для форм и абзацев) ради идеального чтения и предотвращения масштабирования поля ввода на смартфонах (Safari зумит инпуты меньше 16px).
+- **Базовый текст:** фиксируется на `16px` (Safari зумит инпуты меньше 16px).
 
-Пример эталонной шкалы типографики (`_tokens.scss`):
-```scss
-:root {
-  /* Основной и акцентный шрифты */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-
-  /* Флюидные заголовки */
-  --font-display: clamp(40px, 4vw, 64px);
-  --font-h1: clamp(32px, 3.4vw, 52px);
-  --font-h2: clamp(24px, 2.5vw, 38px);
-  --font-h3: clamp(20px, 1.8vw, 26px);
-  --font-h4: 20px;
-
-  /* Текстовые стили */
-  --font-lead: clamp(16px, 1.2vw, 18px);
-  --font-body: 16px;
-  --font-small: 14px;
-  --font-caption: 12px;
-
-  /* Интерлиньяж (Line-Height) */
-  --lh-tight: 1.15;   /* Для крупных заголовков h1-h2 */
-  --lh-snug: 1.3;    /* Для подзаголовков h3-h4 */
-  --lh-normal: 1.5;  /* Для основного чтения */
-}
-```
+Значения токенов `--font-size-h1`…`--font-size-xs` и `--line-height-*` — [docs/design.md](../design.md) §4.
 
 ---
 
 ### 12. Правило выноса стилей в миксины (_tools.scss)
 
-Любой повторяющийся состав CSS-деклараций (от 3–4 строк), встречающийся в двух или более компонентах, обязан выноситься в миксин в `src/styles/_tools.scss`.
+Любой повторяющийся состав CSS-деклараций (от 3–4 строк), встречающийся в двух или более компонентах, обязан выноситься в миксин в `src/shared/styles/_tools.scss`.
 
 Обязательный базовый пул переиспользуемых миксинов:
 
 ```scss
 // 1. Доступное кольцо фокуса клавиатуры
 @mixin focus-ring {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
@@ -403,7 +355,7 @@ src/styles/
 // 4. Тонкий кастомный скроллбар
 @mixin custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: var(--color-border-subtle) transparent;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -415,53 +367,40 @@ src/styles/
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: var(--color-border);
+    background-color: var(--color-border-subtle);
     border-radius: var(--radius-full);
   }
 }
 ```
 
+Миксины `up()`, `down()`, `hover` и `reduced-motion` описаны в §1, §5 и §6.
+
 ---
 
 ### 13. Системная иерархия Z-Index
 
-Запрещен прямой хардкод чисел `z-index` в компонентах. Значения задаются строго через токены в `_tokens.scss`:
-
+- **Единая шкала (в `_tokens.scss`, других шкал в проекте нет):**
 ```scss
 :root {
-  --z-negative: -1;
-  --z-normal: 1;
-  --z-dropdown: 20;
-  --z-sticky: 30;         /* Липкая шапка и фиксированные плашки */
-  --z-modal-backdrop: 40; /* Подложка модального окна */
-  --z-modal: 50;          /* Модальные окна */
-  --z-toast: 100;         /* Всплывающие уведомления (Sonner) */
-  --z-tooltip: 110;       /* Тултипы */
+  --z-base: 1;             /* Базовый приподнятый контент */
+  --z-dropdown: 100;       /* Выпадающие списки, подсказки ввода */
+  --z-sticky: 200;         /* Прилипающая шапка */
+  --z-drawer: 300;         /* Мобильное меню-шторка */
+  --z-modal-backdrop: 400; /* Оверлей под модальным окном */
+  --z-modal: 500;          /* Модальные окна */
+  --z-popover: 600;        /* Поповеры и контекстные меню */
+  --z-toast: 700;          /* Уведомления (Sonner) */
+  --z-tooltip: 800;        /* Тултипы и Skip Link поверх всего */
 }
 ```
+- **Категорический запрет произвольных чисел в `z-index`:** значение задается строго через `var(--z-*)` (контроль: Stylelint `declaration-property-value-allowed-list`).
+- **Изоляция контекста наложения:** для сложных независимых виджетов использовать `isolation: isolate;`, чтобы внутренние слои не конфликтовали с глобальным деревом.
 
 ---
 
 ### 14. Шкала радиусов и теней
 
-Вместо произвольных значений используются системные токены:
-
-```scss
-:root {
-  /* Радиусы скругления */
-  --radius-sm: 4px;       /* Чекбоксы, бейджи, теги */
-  --radius-md: 8px;       /* Кнопки, поля ввода, селекты */
-  --radius-lg: 16px;      /* Карточки, выпадающие списки */
-  --radius-xl: 24px;      /* Модальные окна, крупные баннеры */
-  --radius-full: 9999px;  /* Круглые кнопки, пилюли */
-
-  /* Тени (мягкие многослойные тени) */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 32px 0 rgba(0, 0, 0, 0.12);
-  --shadow-overlay: 0 20px 48px 0 rgba(0, 0, 0, 0.18);
-}
-```
+Вместо произвольных значений используются системные токены `--radius-sm/md/lg/xl/full` и `--shadow-sm/md/lg` (мягкие тени с альфа-каналом 4–8%). Значения — [docs/design.md](../design.md) §5.
 
 ---
 
@@ -470,37 +409,14 @@ src/styles/
 Для исключения лагов и просадки FPS на мобильных устройствах действуют строгие правила:
 
 1. **Запрет `transition: all`:** анимируются только явно перечисленные свойства.
-2. **Запрет анимации геометрии:** запрещено анимировать `width`, `height`, `top`, `left`, `margin`, `padding` (вызывают reflow). Изменение положения и масштаба делается строго через `transform: translate(...) / scale(...)`.
+2. **Запрет анимации геометрии:** запрещено анимировать `width`, `height`, `top`, `left`, `margin`, `padding` (вызывают reflow). Положение и масштаб меняются через `transform: translate(...) / scale(...)`. **Единственное исключение:** раскрытие аккордеонов через `grid-template-rows: 0fr → 1fr` (ADR 0017 §1).
 3. **Безопасный список для анимаций:** `transform`, `opacity`, `color`, `background-color`, `border-color`, `box-shadow`.
-4. **Единые тайминги и функция плавности:**
+4. **Единые тайминги и функция плавности (токены):**
 ```scss
 :root {
-  --motion-fast: 150ms;                               /* Ховеры, активные состояния кнопок */
-  --motion-base: 250ms;                               /* Дропдауны, табы, спойлеры */
-  --motion-slow: 350ms;                               /* Модальные окна, крупные шторки */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);         /* Естественное физическое затухание */
+  --motion-fast: 150ms;                        /* Ховеры, активные состояния кнопок */
+  --motion-base: 250ms;                        /* Дропдауны, табы, спойлеры */
+  --motion-slow: 350ms;                        /* Модальные окна, крупные шторки */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);  /* Естественное физическое затухание */
 }
 ```
-
----
-
-### 5. Архитектура слоев наложения: шкала Z-Index
-
-- **Семантическая шкала токенов (`src/styles/tokens/_z-index.scss`):**
-  - Во всем проекте фиксируется единая карта высот слоев:
-    ```scss
-    $z-base: 1;             // Базовый приподнятый контент
-    $z-dropdown: 100;       // Выпадающие списки, подсказки ввода
-    $z-sticky: 200;         // Прилипающая шапка (Sticky / Fixed Header)
-    $z-drawer: 300;         // Мобильное меню-шторка
-    $z-modal-backdrop: 400; // Оверлей под модальным окном
-    $z-modal: 500;          // Модальные окна
-    $z-popover: 600;        // Поповеры и контекстные меню
-    $z-toast: 700;          // Всплывающие уведомления (Sonner toasts)
-    $z-tooltip: 800;        // Тултипы поверх всего
-    ```
-- **Категорический запрет произвольных чисел в `z-index`:**
-  - Запрещено писать в стилях голые цифры (`z-index: 10`, `z-index: 999`, `z-index: 99999`).
-  - Значение `z-index` задается строго через SCSS-переменную (`$z-sticky`) или CSS-токен (`var(--z-sticky)`).
-- **Изоляция контекста наложения (Stacking Context):**
-  - Для сложных независимых виджетов (карточки, секции) использовать CSS-свойство `isolation: isolate;`, чтобы внутренние слои не вступали в конфликт с глобальным деревом документа.

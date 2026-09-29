@@ -1,87 +1,78 @@
-Failed to write init script: open C:\Users\Windows 10\AppData\Local\Packages\ohmyposh.cli_96v55e8n804z4\LocalCache\Local\oh-my-posh\init.814522496948324317.ps1: Access is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_color.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows
-10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_light_color.xml' is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_icon.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\prefs.xml' is denied.
 # Технологический стек проекта
 
-Документ фиксирует технологический стек, правила выбора инструментов и допустимые библиотеки для веб-разработки (лендинги, многостраничные сайты, веб-сервисы).
+Документ фиксирует технологический стек, правила выбора инструментов и допустимые библиотеки для веб-разработки (лендинги, многостраничные сайты, веб-сервисы). Полный список одобренных пакетов — [ADR 0010](decisions/0010-third-party-libraries-policy.md), команды установки — [setup.md](setup.md).
 
 ---
 
-## 1. Базовые стандарты (Общие для всех проектов)
+## 1. Базовые стандарты (общие для всех проектов)
 
 - **Язык:** TypeScript (строгий режим `strict: true`).
 - **Пакетный менеджер:** Bun (установка пакетов, запуск скриптов).
-- **Стилизация:** SCSS Modules + глобальные токены/переменные в `src/styles/` (или `src/shared/styles/`).
-- **Классы по условию:** 
+- **Стилизация:** SCSS Modules + глобальные токены и миксины в `src/shared/styles/` ([ADR 0003](decisions/0003-scss-standards.md)). Tailwind CSS запрещен.
+- **Классы по условию:**
   - В Astro-разметке: нативная директива `class:list`.
   - В React-компонентах: легковесный `clsx`.
-- **Иконки:** Lucide React (`lucide-react`) и оптимизированные локальные SVG-векторы с TheSVG.org.
-- **Модальные окна и Lightbox (галерея):** 
+- **Иконки:** Lucide React (`lucide-react`) и оптимизированные (SVGO) локальные SVG-файлы; источник и лицензия каждого внешнего SVG фиксируются в описании изменения.
+- **Модальные окна и Lightbox (галерея):**
   - Нативный HTML-элемент `<dialog>` с доступным поведением (ESC, блокировка скролла, фокус-трап).
-  - Полноэкранный просмотр изображений (Lightbox): собственная модалка на базе `<dialog>` + Embla Carousel со стилями на SCSS Modules (без сторонних тяжелых библиотек). При острой необходимости жестов пинч-зума допустимо точечное подключение PhotoSwipe v5.
+  - Полноэкранный просмотр изображений (Lightbox): собственная модалка на базе `<dialog>` + Embla Carousel со стилями на SCSS Modules. При острой необходимости жестов пинч-зума допустимо точечное подключение PhotoSwipe v5.
 - **Всплывающие уведомления (Toast):** Sonner (`sonner`).
-- **Сетевой клиент:** Ky (`ky`) — легковесная обертка над Fetch с retry, таймаутами и хуками.
-- **Управление серверным состоянием:** TanStack Query (`@tanstack/react-query`) для кэширования и мутаций данных.
+- **Сетевой клиент:** Ky (`ky`) — легковесная обертка над Fetch с retry, таймаутами и хуками. Axios запрещен.
+- **Управление серверным состоянием:** TanStack Query (`@tanstack/react-query`) для кеширования и мутаций данных.
 - **Слайдеры и карусели:** Embla Carousel (`embla-carousel-react`).
 - **Маски ввода (телефон, суммы):** IMask (`imask` / `react-imask`).
-- **Аккордеоны (FAQ) и селекты:** Строго нативные HTML-элементы:
-  - FAQ / спойлеры: нативные `<details>` и `<summary>`.
-  - Выпадающие списки: нативный `<select>` (без Radix UI и тяжелых headless-компонентов).
-- **Работа с датами:** Нативные объекты `Date` и `Intl.DateTimeFormat` (без Moment.js / Day.js / date-fns).
-- **Карты (локации, контакты):** Конструктор карт через `<iframe>` с отложенной/ленивой загрузкой (по умолчанию Яндекс.Карты, с возможностью замены на Google Maps / 2GIS).
-- **Анимации и появление при скролле:** Нативный `IntersectionObserver` + CSS Transitions/Keyframes. Обязательный учет `prefers-reduced-motion`. Запрет тяжелых библиотек (GSAP, Framer Motion, AOS) без специального согласования.
+- **Аккордеоны (FAQ) и селекты:** строго нативные HTML-элементы:
+  - FAQ и спойлеры: `<details>` и `<summary>`.
+  - Выпадающие списки: нативный `<select>`.
+- **Работа с датами:** нативные `Date` и `Intl.DateTimeFormat`.
+- **Карты (локации, контакты):** конструктор карт через `<iframe>` с отложенной загрузкой (по умолчанию Яндекс.Карты, с возможностью замены на Google Maps или 2GIS).
+- **Анимации и появление при скролле:** нативный `IntersectionObserver` + CSS Transitions/Keyframes; обязательный учет `prefers-reduced-motion` ([ADR 0017](decisions/0017-motion-and-animations.md)).
 - **Инструменты качества и форматирования:**
-  - **EditorConfig:** `.editorconfig` (отступы 2 пробела, LF, utf-8, trim trailing whitespace).
-  - **Форматирование:** Prettier (`.prettierrc` с плагином `prettier-plugin-astro`, singleQuote, printWidth: 120, trailingComma: all, semi: true, arrowParens: avoid).
-  - **Линтинг кода:** ESLint (`eslint-plugin-astro`, `eslint-plugin-react-hooks`).
-  - **Линтинг стилей:** Stylelint (`stylelint-config-standard-scss`).
-  - **Проверка типов:** `tsc --noEmit` (или `astro check`).
+  - **EditorConfig:** `.editorconfig` (2 пробела, LF, utf-8).
+  - **Форматирование:** Prettier (`.prettierrc` в корне репозитория).
+  - **Линтинг кода:** ESLint Flat Config (`typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`).
+  - **Линтинг стилей:** Stylelint (`stylelint-config-standard-scss`, `stylelint-order`).
+  - **Проверка типов:** `astro check` (Astro) или `tsc --noEmit` (Next.js).
+  - **Тесты:** Vitest (unit), Playwright (E2E smoke), `html-validate` (валидность собранной разметки).
 
 ---
 
-## 2. Профиль Astro (Контентные сайты, лендинги, многостраничники)
+## 2. Профиль Astro (контентные сайты, лендинги, многостраничники)
 
-Применяется, когда главный приоритет — скорость загрузки, высокая оценка Core Web Vitals (Lighthouse 100) и минимальный клиентский JavaScript.
+Применяется, когда главный приоритет — скорость загрузки, Core Web Vitals (пороги — [quality.md](quality.md)) и минимальный клиентский JavaScript.
 
-- **Основной фреймворк:** Astro (генерация статики SSG).
-- **Архитектура интерактива:** Astro Islands (острова архитектуры).
+- **Основной фреймворк:** Astro (статическая генерация SSG).
+- **Архитектура интерактива:** Astro Islands.
   - Статическая разметка, каркас, Hero, текстовые блоки — строго `.astro` (0 Кб JS в браузер).
   - Интерактивные модули (фильтры, корзина, сложные формы, слайдеры) — React через `@astrojs/react`.
-- **Директивы гидратации:** `client:visible` (по умолчанию для блоков ниже первого экрана), `client:idle` (для фоновых виджетов), `client:load` (только для критического интерактива на первом экране).
-- **Управление контентом:** Astro Content Collections (`src/content/`).
-- **Проверка схем контента:** Встроенный Zod (`astro:content` / `astro/zod`).
-- **Формы и валидация:** 
-  - На клиенте (React Island): React Hook Form + Zod.
+- **Директивы гидратации:** `client:visible` (по умолчанию для блоков ниже первого экрана), `client:idle` (фоновые виджеты), `client:load` (только критический интерактив на первом экране).
+- **Управление контентом:** Astro Content Collections (`src/content/`, схемы в `src/content.config.ts`), Zod из `astro/zod`.
+- **Серверные эндпоинты (формы):** `src/pages/api/*.ts` с `prerender = false` и адаптер под хостинг (`@astrojs/node`, `@astrojs/cloudflare`, `@astrojs/vercel`, `@astrojs/netlify`), [ADR 0001](decisions/0001-project-architecture.md) §7.
+- **Формы и валидация:** React Hook Form + Zod (React Island).
 - **Глобальное состояние между островами:** Nano Stores (`nanostores` + `@nanostores/react`).
-- **SEO и sitemap:** `@astrojs/sitemap`, генерация OpenGraph и JSON-LD разметки.
+- **SEO и sitemap:** `@astrojs/sitemap`, OpenGraph и JSON-LD ([ADR 0013](decisions/0013-seo-standards.md)).
 
 ---
 
-## 3. Профиль Next.js (Веб-сервисы, сложная динамика, личные кабинеты)
+## 3. Профиль Next.js (веб-сервисы, сложная динамика, личные кабинеты)
 
-Применяется, когда требуются развитый серверный рендеринг (SSR), авторизация пользователей, API Route Handlers или сложные панели управления.
+Применяется, когда требуются развитый серверный рендеринг (SSR), авторизация, API Route Handlers или сложные панели управления.
 
 - **Основной фреймворк:** Next.js (App Router).
-- **Рендеринг:** Server Components по умолчанию (RSC), Client Components (`'use client'`) только на листьях дерева интерактивности.
-- **Формы и валидация:** React Hook Form + Zod (на клиенте) + валидация Zod в Server Actions / Route Handlers.
-- **Глобальное состояние:** Zustand (только при необходимости межкомпонентного взаимодействия; отказ от нативного React Context для глобальных хранилищ).
-- **Оптимизация ассетов:** Встроенные компоненты `next/image` и `next/font`.
+- **Рендеринг:** Server Components по умолчанию, Client Components (`'use client'`) только на листьях дерева интерактивности.
+- **Формы и валидация:** React Hook Form + Zod (клиент) + валидация Zod в Server Actions и Route Handlers.
+- **Глобальное состояние:** Zustand (только клиентское состояние; собственный React Context запрещен).
+- **Оптимизация ассетов:** `next/image` и `next/font`.
 
 ---
 
 ## 4. Запрещенные к бесконтрольному использованию зависимости
 
-Без прямого технического согласования **запрещено** подключать:
-- **UI-фреймворки с тяжелыми рантаймами:** Tailwind CSS (если выбран SCSS Modules), Ant Design, MUI, Chakra UI.
-- **Headless UI-библиотеки:** Radix UI, Headless UI (использовать нативные HTML-теги `<dialog>`, `<details>`, `<select>`).
+Без прямого согласования **запрещено** подключать:
+- **UI-фреймворки:** Tailwind CSS, Ant Design, MUI, Chakra UI.
+- **Headless UI-библиотеки:** Radix UI, Headless UI (используются нативные теги `<dialog>`, `<details>`, `<select>`).
 - **Тяжелые слайдеры:** Swiper.
 - **Тяжелые анимации:** Framer Motion, Motion, GSAP, AOS.
-- **Тяжелые библиотеки дат и утилит:** Moment.js, Day.js, date-fns, Lodash.
-- **Устаревшие HTTP-клиенты:** Axios (использовать нативный Fetch API).
+- **Библиотеки дат и утилит:** Moment.js, Day.js, date-fns, Lodash.
+- **HTTP-клиенты:** Axios (используется `ky`).
 - **Сложные стейт-менеджеры:** Redux, MobX.
-

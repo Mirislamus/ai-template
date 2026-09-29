@@ -72,24 +72,29 @@
       return fetchSchema(api.get(`users/${id}`).json(), userSchema);
     }
     ```
-- **Типизированный парсинг ошибок бэкенда:**
-  - Использовать хелпер извлечения читаемого сообщения:
-    ```ts
-    export async function getApiErrorMessage(error: unknown): Promise<string> {
-      if (error && typeof error === 'object' && 'response' in error) {
-        const httpError = error as HTTPError;
-        try {
-          const body = (await httpError.response.json()) as { message?: string };
-          if (body?.message) return body.message;
-        } catch {
-          // Игнорируем ошибку парсинга JSON тела
-        }
-        return `Ошибка сервера (${httpError.response.status})`;
+- **Типизированный парсинг ошибок бэкенда (без приведений типов):**
+  ```ts
+  import { HTTPError } from 'ky';
+  import { z } from 'zod';
+
+  const errorBodySchema = z.object({ message: z.string() });
+
+  export async function getApiErrorMessage(error: unknown): Promise<string> {
+    if (error instanceof HTTPError) {
+      const fallback = `Ошибка сервера (${error.response.status})`;
+      try {
+        const body: unknown = await error.response.json();
+        const parsed = errorBodySchema.safeParse(body);
+        return parsed.success ? parsed.data.message : fallback;
+      } catch {
+        return fallback; // тело ответа не является JSON
       }
-      if (error instanceof Error) return error.message;
-      return 'Неизвестная сетевая ошибка';
     }
-    ```
+    if (error instanceof Error) return error.message;
+    return 'Неизвестная сетевая ошибка';
+  }
+  ```
+- **Базовый URL:** `PUBLIC_API_URL` для собственного серверного эндпоинта форм равен `/api` ([.env.example](../../.env.example)).
 
 ---
 
@@ -97,9 +102,9 @@
 
 - **Область применения:**
   - В Next.js — для любых клиентских выборок, фильтрации каталога и бесконечной пагинации.
-  - В интерактивных островах Astro — для динамических виджетов, корзины и отправки заявок.
+  - В интерактивных островах Astro — для динамических виджетов, корзины и отправки заявок (остров оборачивается в `QueryProvider`).
 - **Централизованная конфигурация `QueryClient` (`src/shared/api/query-client.ts`):**
-  - Разумные дефолты для веб-сайтов, предотвращающие паразитный трафик:
+  - Разумные дефолты для веб-сайтов, предотвращающие паразитный трафик. **Ретраи выполняет только `ky`** (один слой): повторы в Query поверх повторов `ky` умножают число запросов (до 9 на один вызов), поэтому в `QueryClient` задается `retry: false`:
     ```ts
     import { QueryClient } from '@tanstack/react-query';
 
@@ -107,24 +112,18 @@
       defaultOptions: {
         queries: {
           staleTime: 5 * 60 * 1000, // 5 минут данные считаются свежими
-          gcTime: 10 * 60 * 1000,    // 10 минут хранятся в памяти
+          gcTime: 10 * 60 * 1000, // 10 минут хранятся в памяти
           refetchOnWindowFocus: false, // Не перезапрашивать при клике в окно
-          retry: (failureCount, error) => {
-            // Не повторять запрос при клиентских ошибках 4xx
-            if (error && typeof error === 'object' && 'response' in error) {
-              const status = (error as { response: Response }).response.status;
-              if (status >= 400 && status < 500) return false;
-            }
-            return failureCount < 2;
-          },
+          retry: false, // ретраи настроены в ky (src/shared/api/client.ts)
         },
       },
     });
     ```
+  - Остров Astro оборачивается в `QueryProvider` с этим экземпляром ([ADR 0005](0005-react-standards.md) §9).
 - **Паттерн Query Key Factory:**
   - Исключение опечаток в ключах кеша и централизованная инвалидация:
     ```ts
-    // src/entities/product/api/product.keys.ts
+    // src/features/catalog/api/product.keys.ts
     export const productKeys = {
       all: ['products'] as const,
       lists: () => [...productKeys.all, 'list'] as const,
@@ -147,12 +146,9 @@
 
     // src/features/contact-form/api/use-submit-contact.ts
     export function useSubmitContact() {
-      const queryClient = useQueryClient();
       return useMutation({
-        mutationFn: (values: ContactFormValues) =>
-          api.post('api/contact', { json: values }).json(),
+        mutationFn: (values: ContactFormValues) => api.post('contact', { json: values }).json(),
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: productKeys.all });
           toast.success('Заявка успешно отправлена!');
         },
         onError: async error => {
@@ -171,8 +167,8 @@
   - Свойства строгой типизации:
     - Имя: `z.string().trim().min(2, 'Минимум 2 символа').max(50)`.
     - Телефон: проверка на минимальное количество цифр.
-    - Email: `z.string().trim().email('Некорректный email').toLowerCase()`.
-    - Чекбокс согласия: `z.literal(true, { errorMap: () => ({ message: 'Подтвердите согласие' }) })`.
+    - Email: `z.string().trim().toLowerCase().pipe(z.email('Некорректный email'))`.
+    - Чекбокс согласия на обработку персональных данных: `z.literal(true, { error: 'Подтвердите согласие на обработку персональных данных' })`.
 - **Маска ввода телефона (`imask`):**
   - В базу и на сервер отправляется **строго очищенное значение (unmaskedValue)** — только цифры (например, `79991234567`), без скобок и дефисов.
   - В чистом Astro библиотека маски подгружается динамически (`import('imask')`) строго по событию `focus` на поле телефона.
@@ -187,15 +183,49 @@
      - Скрытое поле `<input type="text" name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" />`.
      - Если поле заполнено (боты автоматически заполняют все поля) — запрос реджектится без отправки лида.
   2. **Time-trap (Временная метка):**
-     - Проверка времени заполнения формы. Заявки, отправленные быстрее чем за 1.5 секунды с момента рендера формы, отсекаются как спам-скрипты.
+     - Клиент передает в запросе момент рендера формы (`startedAt`, мс). Заявки, отправленные быстрее чем за 1.5 секунды, отсекаются как спам-скрипты.
+  - **Обе проверки выполняются на сервере** (клиентская проверка обходится). При срабатывании эндпоинт отвечает `200 OK` без отправки лида, чтобы бот не узнал о ловушке.
 - **Cloudflare Turnstile (Резервный рубеж):**
   - Бесшовная невидимая капча без решения задач подключается только при фиксации направленной распределенной спам-атаки.
+- **Серверный эндпоинт формы (Astro, [ADR 0001](0001-project-architecture.md) §7):**
+  ```ts
+  // src/pages/api/contact.ts
+  import type { APIRoute } from 'astro';
+  import { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } from 'astro:env/server';
+
+  import { contactRequestSchema } from '@/features/contact-form/model/contact-form.schema';
+
+  export const prerender = false;
+
+  export const POST: APIRoute = async ({ request }) => {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ message: 'Некорректный формат запроса' }, { status: 400 });
+    }
+
+    const parsed = contactRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return Response.json({ message: 'Проверьте заполнение полей формы' }, { status: 400 });
+    }
+
+    const { website, startedAt, ...lead } = parsed.data;
+    const isBot = website !== '' || Date.now() - startedAt < 1500;
+    if (isBot) return Response.json({ ok: true }); // тихо отсекаем спам
+
+    // Отправка лида в интеграцию (Telegram, CRM) с секретами из окружения
+    await sendLead(lead, { token: TELEGRAM_BOT_TOKEN, chatId: TELEGRAM_CHAT_ID });
+    return Response.json({ ok: true });
+  };
+  ```
+  - `contactRequestSchema` расширяет клиентскую схему полями `website` и `startedAt`. Приватные ключи читаются только на сервере.
 
 ---
 
 ### 5. Пять обязательных состояний интерфейса формы
 
-Любая форма связи обязана поддерживать 5 состояний:
+Любая форма связи обязана поддерживать 5 состояний формы (не путать с состояниями элемента из [docs/design.md](../design.md) §7 и состояниями данных Loading / Empty / Error / Success):
 
 1. **Idle (Покой):** поля чистые или содержат плейсхолдеры, кнопка активна.
 2. **Submitting (Отправка):**
@@ -222,8 +252,7 @@
   - Запрещен вывод сырого HTML через `dangerouslySetInnerHTML` или `set:html` без предварительной санитизации через `dompurify`.
 - **Безопасность внешних ссылок:**
   - Все ссылки на внешние ресурсы с `target="_blank"` обязаны содержать атрибут `rel="noopener noreferrer"` для предотвращения доступа к родительскому объекту `window.opener`.
-- **Заголовки безопасности веб-сервера:**
+- **Заголовки безопасности веб-сервера (конфигурация — [ADR 0018](0018-deployment-and-caching.md) §3):**
   - `X-Frame-Options: DENY` (защита от встраивания сайта во фреймы / Clickjacking).
   - `X-Content-Type-Options: nosniff` (запрет угадывания MIME-типов).
   - `Referrer-Policy: strict-origin-when-cross-origin`.
-

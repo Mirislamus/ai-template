@@ -1,2 +1,2 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Единые LF-окончания строк во всех ОС (соответствует .editorconfig и .prettierrc)
+* text=auto eol=lf

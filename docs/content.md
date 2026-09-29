@@ -1,11 +1,3 @@
-Failed to write init script: open C:\Users\Windows 10\AppData\Local\Packages\ohmyposh.cli_96v55e8n804z4\LocalCache\Local\oh-my-posh\init.814522496948324317.ps1: Access is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows
-10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_light_color.xml' is denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_color.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\devblackops_icon.xml' is
-denied.
-Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershell\Community\Terminal-Icons\prefs.xml' is denied.
 # Стандарты контента, типографики и микрокопирайтинга
 
 Документ определяет правила экранной типографики на русском языке, tone of voice и микрокопирайтинга интерфейсных элементов (кнопки, формы, ошибки, пустые состояния).
@@ -76,9 +68,8 @@ Export-Clixml: Access to the path 'C:\Users\Windows 10\AppData\Roaming\powershel
 2. Пояснение причины (`По запросу «...» нет подходящих товаров`).
 3. Действие для выхода из тупика: кнопка «Сбросить фильтры» или ссылка «Перейти в полный каталог».
 
-### Правовые дисклеймеры в формах (152-ФЗ / GDPR):
-- Под каждой формой сбора контактов (имя, телефон, email) обязателен текст согласия со ссылкой на политику:
-  - *«Нажимая кнопку, вы соглашаетесь с [Политикой конфиденциальности](/privacy-policy) и обработкой персональных данных»*.
-  - Чекбокс согласия **запрещено** делать предвыбранным (`checked={true}`) по закону — пользователь обязан проставить галочку осознанно.
-  - Ссылка на политику конфиденциальности (`/privacy-policy`) обязана быть кликабельной и открываться в новой вкладке (`target="_blank" rel="noopener noreferrer"`).
-
+### Согласие на обработку персональных данных в формах (152-ФЗ / GDPR):
+- Под каждой формой сбора контактов (имя, телефон, email) обязателен **отдельный чекбокс согласия**, а не формула «Нажимая кнопку, вы соглашаетесь». Согласие оформляется отдельно от иных документов (152-ФЗ, ст. 9, редакция с 01.09.2025):
+  - Текст чекбокса: *«Я даю [согласие на обработку персональных данных](/personal-data-consent)»*; рядом или ниже — ссылка *«Подробнее — в [Политике конфиденциальности](/privacy-policy)»*.
+  - Чекбокс **запрещено** делать предвыбранным (`checked={true}`): пользователь обязан проставить галочку осознанно; отправка формы без согласия невозможна (`z.literal(true)` в схеме, [ADR 0008](decisions/0008-forms-and-api.md) §3).
+  - Обе ссылки открываются в новой вкладке (`target="_blank" rel="noopener noreferrer"`). Страницы — [personal-data-consent](pages/personal-data-consent.md) и [privacy-policy](pages/privacy-policy.md).

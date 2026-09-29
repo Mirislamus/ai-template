@@ -13,6 +13,8 @@
 
 ## Принятые стандарты
 
+> Имена классов в HTML-примерах этого документа условные. В проекте стили подключаются через SCSS Modules с плоскими именами (`s.root`, `s.title`), см. [ADR 0003](0003-scss-standards.md).
+
 ### 1. Каркас страницы и структура секций
 
 - **Главные ориентиры страницы:**
@@ -112,8 +114,10 @@
 - Одиночный чекбокс:
 ```html
 <label class="checkbox">
-  <input type="checkbox" name="policy" required />
-  <span>Согласен с политикой конфиденциальности</span>
+  <input type="checkbox" name="consent" required />
+  <span>
+    Я даю <a href="/personal-data-consent" target="_blank" rel="noopener noreferrer">согласие на обработку персональных данных</a>
+  </span>
 </label>
 ```
 - Группа опций: **обязательно** оборачивается в `<fieldset>` с подписью группы в `<legend>`:
@@ -135,8 +139,8 @@
 Скрытое поле для ботов скрывается через CSS-свойства:
 ```html
 <div class="visually-hidden" aria-hidden="true">
-  <label for="company-site-hp">Не заполняйте это поле, если вы человек</label>
-  <input type="text" id="company-site-hp" name="site_url_hp" tabindex="-1" autocomplete="off" />
+  <label for="website-hp">Не заполняйте это поле, если вы человек</label>
+  <input type="text" id="website-hp" name="website" tabindex="-1" autocomplete="off" />
 </div>
 ```
 
@@ -322,7 +326,7 @@
   padding: 0 !important;
   margin: -1px !important;
   overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
   white-space: nowrap !important;
   border: 0 !important;
 }
@@ -399,17 +403,17 @@
 .skip-link {
   position: absolute;
   top: -999px;
-  left: 16px;
-  z-index: 10000;
-  padding: 12px 20px;
-  background-color: var(--color-primary, #000);
-  color: #fff;
-  border-radius: 4px;
+  left: var(--space-4);
+  z-index: var(--z-tooltip);
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-sm);
   font-weight: 600;
   text-decoration: none;
 
   &:focus {
-    top: 16px;
+    top: var(--space-4);
   }
 }
 ```
@@ -434,7 +438,7 @@
     <title>Заголовок страницы — Название бренда</title>
     <meta name="description" content="Емкое описание страницы длиной 140–160 символов." />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://example.com/current-page/" />
+    <link rel="canonical" href="https://example.com/current-page" />
 
     <!-- Минимальный современный набор фавиконок -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -446,11 +450,12 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Заголовок страницы — Название бренда" />
     <meta property="og:description" content="Емкое описание страницы." />
-    <meta property="og:url" content="https://example.com/current-page/" />
+    <meta property="og:url" content="https://example.com/current-page" />
     <meta property="og:image" content="https://example.com/og/cover.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://example.com/og/cover.jpg" />
   </head>
   <body>
     <!-- Доступный переход к контенту -->
@@ -479,26 +484,20 @@
 #### Строгие правила для секции `<head>`:
 - **`lang` обязателен:** тег `<html>` обязан иметь атрибут языка (например, `ru`, `en`, `uz`).
 - **Запрет блокировки зума:** в `viewport` категорически запрещено использовать `user-scalable=no`, `maximum-scale=1.0` (грубое нарушение доступности WCAG, блокирующее масштабирование для слабовидящих людей).
-- **Каноникал:** тег `<link rel="canonical">` обязан указывать абсолютный URL с протоколом `https://` и согласованным завершающим слешем (trailing slash).
+- **Каноникал:** тег `<link rel="canonical">` обязан указывать абсолютный URL с протоколом `https://` и без завершающего слэша, кроме корня домена (`https://example.com/`), см. [ADR 0013](0013-seo-standards.md).
 - **`format-detection`:** мета-тег `<meta name="format-detection" content="telephone=no" />` предотвращает неконтролируемое автооборачивание произвольных цифр в ссылки на смартфонах (звонки оформляются строго через явный тег `<a href="tel:...">`).
 
 ---
 
-### 6. Архитектура модальных окон и диалогов (<dialog>)
+### 15. Архитектура модальных окон и диалогов (`<dialog>`)
 
 - **Использование нативного `<dialog>` вместо самодельных `<div>`:**
-  - Открытие выполняется строго через метод `.showModal()` (а не `.show()`). Это автоматически переносит диалог в верхний системный слой браузера (Top Layer), делает остальную страницу неактивной (`inert`), обеспечивает фокус-трап и нативное закрытие по клавише `ESC`.
+  - Открытие выполняется строго через метод `.showModal()` (а не `.show()`). Это переносит диалог в верхний системный слой браузера (Top Layer), делает остальную страницу неактивной (`inert`), обеспечивает фокус-трап и закрытие по клавише `ESC`.
 - **Закрытие по клику на фон (Backdrop Click):**
-  - Реализуется через проверку попадания клика в координаты контента:
+  - У `<dialog>` нет собственных внутренних отступов (`padding: 0`), контент лежит во вложенной обертке. Клик по фону приходит на сам элемент `<dialog>`, поэтому проверка сводится к сравнению цели события (клавиатурный «клик» по кнопке внутри диалога не закрывает окно):
     ```ts
     dialog.addEventListener('click', event => {
-      const rect = dialog.getBoundingClientRect();
-      const isInside =
-        event.clientX >= rect.left &&
-        event.clientX <= rect.right &&
-        event.clientY >= rect.top &&
-        event.clientY <= rect.bottom;
-      if (!isInside) dialog.close();
+      if (event.target === dialog) dialog.close();
     });
     ```
 - **Блокировка скролла без сдвига макета (Zero Layout Shift):**
@@ -507,25 +506,20 @@
 - **Возврат фокуса на элемент-триггер:**
   - При закрытии диалога фокус автоматически возвращается на кнопку, вызвавшую открытие окна.
 - **Мобильная шторка (Bottom Sheet):**
-  - На мобильных устройствах (`max-width: 768px`) `<dialog>` адаптируется стилями как шторка, прижатая к нижнему краю экрана со скруглением верхних углов.
+  - На экранах уже брейкпоинта `md` (`@include down(md)`, то есть `width < 768px`) `<dialog>` адаптируется как шторка, прижатая к нижнему краю экрана со скруглением верхних углов.
 
 ---
 
-### 7. Доступность клавиатурного фокуса (:focus-visible) и Skip Link
+### 16. Доступность клавиатурного фокуса (`:focus-visible`)
 
-- **Обязательный Skip Link (Ссылка пропуска навигации):**
-  - Самый первый интерактивный элемент внутри `<body>`:
-    ```html
-    <a href="#main-content" class="skip-link">Перейти к основному контенту</a>
-    ```
-  - Визуально скрыт по умолчанию, плавно выезжает сверху при первом нажатии клавиши `Tab`. Позволяет пользователям с клавиатуры мгновенно перейти к чтению содержимого, минуя повторяющиеся ссылки шапки.
+- **Skip Link** обязателен на каждой странице, разметка и стили описаны в §13. Ссылка визуально скрыта и появляется при первом нажатии `Tab`.
 - **Категорический запрет `outline: none` без замены:**
-  - Снятие обводки фокуса у интерактивных элементов без альтернативного оформления запрещено (нарушение стандарта WCAG 2.4.7).
+  - Снятие обводки фокуса у интерактивных элементов без альтернативного оформления запрещено (нарушение WCAG 2.4.7).
 - **Стандарт оформления фокуса:**
-  - Использовать селектор `:focus-visible` (срабатывает только при навигации с клавиатуры, не затрагивая клики мыши):
+  - Использовать селектор `:focus-visible` (срабатывает при навигации с клавиатуры, не затрагивая клики мыши):
     ```scss
     :focus-visible {
-      outline: 2px solid var(--color-primary, #3b82f6);
+      outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
     ```
