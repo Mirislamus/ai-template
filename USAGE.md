@@ -38,9 +38,9 @@
 4. Создание локального `.env` из `.env.example`.
 5. Проверка: `bun run check`.
 
-### Шаг 4: Проектирование и верстка страниц
-Для каждой страницы:
-1. Скопируйте [docs/pages/page-template.md](docs/pages/page-template.md) в `docs/pages/[name].md` и заполните метаданные ([docs/seo.md](docs/seo.md)), структуру секций, типы компонентов и источники данных.
+### Шаг 4: Верстка страниц
+Паспорта страниц создаются и утверждаются сразу после `PRODUCT.md`, до инициализации ([PROMPT.md](PROMPT.md)): для каждой страницы копия [docs/pages/page-template.md](docs/pages/page-template.md) в `docs/pages/[name].md` с метаданными ([docs/seo.md](docs/seo.md)), секциями, типами компонентов и источниками данных. Верстка идет строго по утвержденным паспортам:
+1. Новую страницу без паспорта не верстать: сначала паспорт.
 2. Разрабатывайте компоненты по FSD-Lite ([ARCHITECTURE.md](ARCHITECTURE.md)).
 3. Соблюдайте стандарты: разметка и a11y — [ADR 0002](docs/decisions/0002-html-standards.md); стили — [docs/design.md](docs/design.md) и [ADR 0003](docs/decisions/0003-scss-standards.md); типографика и тексты — [docs/content.md](docs/content.md); состояние — [ADR 0006](docs/decisions/0006-state-management.md).
 
