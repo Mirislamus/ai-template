@@ -49,25 +49,62 @@ src/
 - **Глобальное состояние:** `shared/stores/` через Nano Stores (Astro) или Zustand (Next.js).
 - **URL как SSOT:** фильтры, пагинация и поиск синхронизируются со строкой запроса (`URLSearchParams`).
 
+## Бэкенд (монорепо)
+
+Отдельный бэкенд подключается только по решению в PRODUCT.md ([ADR 0019](docs/decisions/backend/0019-backend-architecture.md) §1). Тогда репозиторий становится монорепо: дерево фронтенда выше располагается в `apps/web/src/`, бэкенд — в `apps/api/`.
+
+```text
+apps/
+├── web/                  # Фронтенд: структура src/ — выше (FSD-Lite)
+└── api/
+    ├── drizzle/          # SQL-миграции drizzle-kit (коммитятся)
+    └── src/
+        ├── index.ts      # Точка входа HTTP-сервера, корректная остановка
+        ├── app.ts        # Сборка Elysia (префикс /api, обработчик ошибок, модули), export type App
+        ├── worker.ts     # Точка входа обработчика очереди задач
+        ├── config/       # env.ts: Zod-валидация окружения
+        ├── db/           # client.ts, migrate.ts, seed.ts, schema/ (таблицы по сущностям)
+        ├── modules/      # Фичи: <feature>/index.ts (маршруты), service.ts, model.ts, *.test.ts
+        ├── jobs/         # Обработчики фоновых задач
+        └── shared/       # auth, errors, logger, request-id, rate-limit, storage, alert
+packages/
+└── shared/               # Общие Zod-схемы, типы и константы фронтенда и бэкенда
+```
+
+- `apps/web` импортирует из `apps/api` только тип `App` для клиента Eden ([ADR 0020](docs/decisions/backend/0020-api-contract-and-errors.md) §1).
+- Внутри модуля: маршруты → сервис → БД. Маршруты не обращаются к БД, сервисы не зависят от контекста Elysia ([ADR 0019](docs/decisions/backend/0019-backend-architecture.md) §3).
+
 ## Реестр архитектурных решений
 
-Каталог `docs/decisions/` — единственный реестр ADR:
+Каталог `docs/decisions/` — единственный реестр ADR. Нумерация сквозная, ADR разложены по областям.
 
+**Фронтенд (`docs/decisions/frontend/`):**
 - `0001-project-architecture.md` — профили Astro и Next.js, FSD-Lite, гидратация, рендеринг, контент.
 - `0002-html-standards.md` — семантика HTML5, доступность, нативный `<dialog>`, Skip Link.
 - `0003-scss-standards.md` — SCSS Modules, токены, z-index, миксины, брейкпоинты.
-- `0004-ts-js-standards.md` — строгий TypeScript и JavaScript, именование, импорты.
 - `0005-react-standards.md` — React 19, хуки, мемоизация, провайдеры библиотек.
 - `0006-state-management.md` — уровни состояния, Nano Stores, Zustand, URL.
 - `0007-assets-and-media.md` — изображения, шрифты, иконки, фавиконки.
 - `0008-forms-and-api.md` — `ky`, TanStack Query, формы, антиспам, безопасность.
+- `0013-seo-standards.md` — канонические URL, sitemap, JSON-LD, валидация.
+- `0015-analytics-and-tracking.md` — отложенная аналитика, фасад `trackEvent`, уведомление о cookie.
+- `0016-i18n-standards.md` — словари, `astro:i18n`, `Intl`.
+- `0017-motion-and-animations.md` — GPU-анимации, `prefers-reduced-motion`, Scroll Reveal.
+
+**Бэкенд (`docs/decisions/backend/`):**
+- `0019-backend-architecture.md` — когда нужен бэкенд, монорепо, модули по фичам, очередь задач.
+- `0020-api-contract-and-errors.md` — Eden Treaty, адреса и формат данных, пагинация, ошибки RFC 9457.
+- `0021-database-and-migrations.md` — PostgreSQL, Drizzle, соглашения схемы, миграции, бэкапы.
+- `0022-auth-and-access.md` — Better Auth, сессии, способы входа, роли, проверка владельца, 2FA.
+- `0023-security-logging-and-config.md` — валидация, лимиты запросов, секреты, логи, алерты, файлы.
+
+**Общие (`docs/decisions/common/`):**
+- `0004-ts-js-standards.md` — строгий TypeScript и JavaScript, именование, импорты.
 - `0009-tooling-and-linting.md` — Prettier, ESLint, Stylelint.
 - `0010-third-party-libraries-policy.md` — политика версий, черный и белый списки.
 - `0011-git-workflow-and-commits.md` — Conventional Commits, ветки, безопасность Git.
 - `0012-build-and-package-manager.md` — Bun, бюджет бандла, окружение.
-- `0013-seo-standards.md` — канонические URL, sitemap, JSON-LD, валидация.
-- `0014-testing-and-qa.md` — пирамида тестов, Definition of Done.
-- `0015-analytics-and-tracking.md` — отложенная аналитика, фасад `trackEvent`, уведомление о cookie.
-- `0016-i18n-standards.md` — словари, `astro:i18n`, `Intl`.
-- `0017-motion-and-animations.md` — GPU-анимации, `prefers-reduced-motion`, Scroll Reveal.
-- `0018-deployment-and-caching.md` — кеширование, деплой, Nginx, CI/CD.
+- `0014-testing-and-qa.md` — пирамида тестов, тесты бэкенда, Definition of Done.
+- `0018-deployment-and-caching.md` — кеширование, деплой, Nginx, Docker Compose, CI/CD.
+
+Новый ADR получает следующий свободный номер и кладется в папку своей области; общая для фронтенда и бэкенда тема — в `common/`.

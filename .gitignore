@@ -9,6 +9,9 @@ playwright-report/
 test-results/
 stats.html
 
+# Локальные загрузки файлов API (ADR 0023 §7)
+uploads/
+
 # Секреты и локальное окружение
 .env
 .env.*

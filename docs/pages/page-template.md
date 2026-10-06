@@ -8,7 +8,7 @@
 
 - **URL маршрута:** `/services/web-design` (или `/about`, `/`)
 - **Назначение страницы:** краткое описание цели страницы для пользователя и бизнеса.
-- **Тип рендеринга:** SSG (Astro — по умолчанию) / ISR / SSR (Next.js) согласно [ADR 0001](../decisions/0001-project-architecture.md).
+- **Тип рендеринга:** SSG (Astro — по умолчанию) / ISR / SSR (Next.js) согласно [ADR 0001](../decisions/frontend/0001-project-architecture.md).
 - **SEO-метаданные согласно [docs/seo.md](../seo.md):**
   - `<title>`: [Ключевой запрос] — [Бренд] (строго 50–60 символов).
   - `<meta name="description">`: УТП + факты + призыв к действию (строго 140–160 символов).
@@ -28,16 +28,16 @@
 3. **Тип компонента:** статический `.astro` (0 Кб JS в браузере).
 4. **Источник данных:** статические пропсы или фронтматтер страницы.
 5. **Интерактив и аналитика:**
-   - Кнопка CTA: открывает модальное окно `LeadModal` через общий легкий `<script>` ([ADR 0004](../decisions/0004-ts-js-standards.md) §10), без React-острова: первый экран остается без клиентского React JS.
+   - Кнопка CTA: открывает модальное окно `LeadModal` через общий легкий `<script>` ([ADR 0004](../decisions/common/0004-ts-js-standards.md) §10), без React-острова: первый экран остается без клиентского React JS.
    - Аналитическое событие: `trackEvent({ name: 'cta_click', payload: { location: 'hero' } })`.
-   - Медиа первого экрана: `loading="eager"` + `fetchpriority="high"` по [ADR 0007](../decisions/0007-assets-and-media.md).
+   - Медиа первого экрана: `loading="eager"` + `fetchpriority="high"` по [ADR 0007](../decisions/frontend/0007-assets-and-media.md).
 
 ---
 
 ### Секция 2: Преимущества / Особенности
 1. **Виджет:** `src/widgets/benefits/BenefitsSection.astro`
 2. **Уровень заголовка:** `<h2>` — [Заголовок секции преимуществ]
-3. **Тип компонента:** статический `.astro` с появлением при скролле через `data-reveal` по [ADR 0017](../decisions/0017-motion-and-animations.md).
+3. **Тип компонента:** статический `.astro` с появлением при скролле через `data-reveal` по [ADR 0017](../decisions/frontend/0017-motion-and-animations.md).
 4. **Источник данных:** локальный массив карточек или коллекция `src/content/`.
 5. **Интерактив и аналитика:** статичный контент, карточки с иконками Lucide.
 
@@ -46,10 +46,10 @@
 ### Секция 3: Интерактивный каталог / Фильтр / Калькулятор
 1. **Виджет:** `src/widgets/catalog/CatalogSection.astro`
 2. **Уровень заголовка:** `<h2>` — [Заголовок каталога/калькулятора]
-3. **Тип компонента:** интерактивный React-остров `<CatalogWidget client:visible />` по [ADR 0001](../decisions/0001-project-architecture.md).
-4. **Источник данных:** клиентский хук TanStack Query + клиент `ky` по [ADR 0008](../decisions/0008-forms-and-api.md).
+3. **Тип компонента:** интерактивный React-остров `<CatalogWidget client:visible />` по [ADR 0001](../decisions/frontend/0001-project-architecture.md).
+4. **Источник данных:** клиентский хук TanStack Query + клиент `ky` по [ADR 0008](../decisions/frontend/0008-forms-and-api.md).
 5. **Интерактив, стейт и аналитика:**
-   - Состояние фильтров и пагинации синхронизируется с URL-параметрами по [ADR 0006](../decisions/0006-state-management.md).
+   - Состояние фильтров и пагинации синхронизируется с URL-параметрами по [ADR 0006](../decisions/frontend/0006-state-management.md).
    - **Обязательные состояния интерфейса:**
      - `Loading`: отображение скелетонов (Skeleton).
      - `Empty`: компонент `EmptyState` с кнопкой «Сбросить фильтры».
@@ -63,7 +63,7 @@
 2. **Уровень заголовка:** `<h2>` — [Часто задаваемые вопросы]
 3. **Тип компонента:** статический `.astro` на нативных тегах `<details>` и `<summary>` (без лишнего React JS).
 4. **Источник данных:** Astro Content Collection `src/content/faq/` со схемой Zod.
-5. **Интерактив и аналитика:** нативное раскрытие спойлеров, микроразметка Schema.org `FAQPage` (JSON-LD) по [ADR 0013](../decisions/0013-seo-standards.md).
+5. **Интерактив и аналитика:** нативное раскрытие спойлеров, микроразметка Schema.org `FAQPage` (JSON-LD) по [ADR 0013](../decisions/frontend/0013-seo-standards.md).
 
 ---
 
@@ -74,7 +74,7 @@
 4. **Источник данных:** React Hook Form + Zod-валидация (`contact-form.schema.ts`).
 5. **Интерактив, безопасность и аналитика:**
    - Маска телефона `imask` с передачей очищенного `unmaskedValue`.
-   - Антиспам: поле-ловушка Honeypot и Time-trap по [ADR 0008](../decisions/0008-forms-and-api.md).
+   - Антиспам: поле-ловушка Honeypot и Time-trap по [ADR 0008](../decisions/frontend/0008-forms-and-api.md).
    - Обязательная отработка 5 состояний формы: Idle, Submitting, Success, Error, Disabled.
    - Отдельный непроставленный чекбокс согласия на обработку персональных данных со ссылками на `/personal-data-consent` и `/privacy-policy` по [docs/content.md](../content.md).
    - Аналитическое событие при успешной отправке: `trackEvent({ name: 'lead_form_submit', payload: { formId: 'contact-section' } })`.
@@ -83,7 +83,7 @@
 
 ## 3. Модальные окна страницы
 
-- **`LeadModal`:** нативный элемент `<dialog>` с открытием через `.showModal()`, закрытием по клику на backdrop и `scrollbar-gutter: stable` по [ADR 0002](../decisions/0002-html-standards.md).
+- **`LeadModal`:** нативный элемент `<dialog>` с открытием через `.showModal()`, закрытием по клику на backdrop и `scrollbar-gutter: stable` по [ADR 0002](../decisions/frontend/0002-html-standards.md).
 - **Мобильная адаптация:** на экранах `< 768px` модалка трансформируется в прижатую к низу шторку (Bottom Sheet).
 
 ---

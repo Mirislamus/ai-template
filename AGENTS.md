@@ -16,7 +16,7 @@
 - `README.md` — установка и запуск;
 - `STATE.md` — текущая цель, блокеры и следующий шаг;
 - `docs/tech.md` — используемые технологии;
-- `docs/setup.md` — развертывание проекта и эталонные конфиги;
+- `docs/setup/` — развертывание проекта и эталонные конфиги (`common.md`, `frontend.md`, `backend.md`);
 - `docs/skills.md` — регламент AI-навыков;
 - `docs/design.md`, `docs/content.md`, `docs/seo.md`, `docs/quality.md` — глобальные правила;
 - `docs/tasks.md` — задачи и их состояние;

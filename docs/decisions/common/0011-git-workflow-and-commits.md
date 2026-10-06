@@ -86,6 +86,7 @@
   - Эталонный `.gitignore` лежит в корне шаблона; в нем обязательно включены:
     - Артефакты сборки и отчеты: `dist/`, `.astro/`, `.next/`, `out/`, `coverage/`, `playwright-report/`, `test-results/`, `stats.html`.
     - Секреты: `.env`, `.env.*` (кроме `.env.example`).
+    - Локальные загрузки файлов API: `uploads/`.
     - Зависимости: `node_modules/`.
     - Логи и дампы: `*.log`, `npm-debug.log*`, `yarn-debug.log*`.
     - Системный мусор: `.DS_Store`, `Thumbs.db`.

@@ -10,7 +10,7 @@
 4. **Автоматический контроль правил ADR:** запреты `enum`, `any`, `!`, собственного React Context, `rem`/`em`, `transition: all` и произвольного `z-index` проверяются линтерами.
 5. **Единая точка входа качества:** команда `bun run check` с флагом `--max-warnings 0`.
 
-Все эталонные конфиги и команды находятся в [docs/setup.md](../setup.md) §2; этот документ фиксирует правила.
+Все эталонные конфиги и команды находятся в [docs/setup/](../../setup/): общие — [common.md](../../setup/common.md), фронтенд — [frontend.md](../../setup/frontend.md) §2, бэкенд — [backend.md](../../setup/backend.md) §2–3; этот документ фиксирует правила.
 
 ---
 
@@ -19,7 +19,7 @@
 ### 1. Форматирование кода: Prettier
 
 - **Правило невмешательства:** ESLint не проверяет правила форматирования. Все конфликты отключаются через `eslint-config-prettier`.
-- **Единственный источник настроек — корневой [.prettierrc](../../.prettierrc)** (`printWidth: 120`, `singleQuote`, `trailingComma: all`, `endOfLine: lf`, `arrowParens: avoid`).
+- **Единственный источник настроек — корневой [.prettierrc](../../../.prettierrc)** (`printWidth: 120`, `singleQuote`, `trailingComma: all`, `endOfLine: lf`, `arrowParens: avoid`).
 - **Плагин `prettier-plugin-astro`** обязателен в профиле Astro для фронтматтера и разметки `.astro`.
 
 ---
@@ -64,6 +64,6 @@
 
 ### 4. Стандартизация команд проверки
 
-- Команды `lint`, `format`, `typecheck`, `check` описаны в [docs/setup.md](../setup.md) §2.6 и являются единой точкой входа.
+- Команды `lint`, `format`, `typecheck`, `check` описаны в [docs/setup/frontend.md](../../setup/frontend.md) §2.4 и [docs/setup/backend.md](../../setup/backend.md) §3 и являются единой точкой входа.
 - **Флаг `--max-warnings 0`:** проект считается непрошедшим проверку при любом предупреждении линтера.
 - **Единая команда `bun run check`** (форматирование, линтеры, типы) — финальный шаг перед коммитом и обязательный шаг Quality Gate в CI ([ADR 0018](0018-deployment-and-caching.md) §4).

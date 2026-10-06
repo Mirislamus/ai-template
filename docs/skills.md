@@ -1,6 +1,6 @@
 # Регламент использования AI-навыков (docs/skills.md)
 
-Документ определяет одобренные AI-навыки (Skills): основные навыки жизненного цикла с условиями запуска (Core Pipeline), специализированные навыки по требованию (On-Demand), правила совместимости с документацией проекта и протокол отчетности. Используются только навыки из этого списка.
+Документ определяет одобренные AI-навыки (Skills): основные навыки жизненного цикла с условиями запуска (Core Pipeline), специализированные навыки по требованию (On-Demand), опциональные плагины Claude Code, правила совместимости с документацией проекта и протокол отчетности. Используются только навыки из этого списка.
 
 ---
 
@@ -19,10 +19,10 @@
 ## 2. Приоритет стандартов проекта (Strict Precedence)
 
 [AGENTS.md](../AGENTS.md), [docs/design.md](design.md) и реестр [docs/decisions/](decisions/) имеют **абсолютный приоритет** над рекомендациями любого навыка:
-- Tailwind CSS — запрещен (только SCSS Modules, [ADR 0003](decisions/0003-scss-standards.md)).
-- Radix UI и Headless UI — запрещены (только нативные `<dialog>`, `<details>`, [ADR 0002](decisions/0002-html-standards.md) и [ADR 0010](decisions/0010-third-party-libraries-policy.md)).
+- Tailwind CSS — запрещен (только SCSS Modules, [ADR 0003](decisions/frontend/0003-scss-standards.md)).
+- Radix UI и Headless UI — запрещены (только нативные `<dialog>`, `<details>`, [ADR 0002](decisions/frontend/0002-html-standards.md) и [ADR 0010](decisions/common/0010-third-party-libraries-policy.md)).
 - `rem`/`em` для отступов и шрифтов — запрещены (`px` и токены, [docs/design.md](design.md)).
-- SWR — не используется: серверное состояние ведет TanStack Query ([ADR 0008](decisions/0008-forms-and-api.md)).
+- SWR — не используется: серверное состояние ведет TanStack Query ([ADR 0008](decisions/frontend/0008-forms-and-api.md)).
 - Файл `DESIGN.md` не создается: единственный источник дизайн-правил — [docs/design.md](design.md).
 
 ---
@@ -58,10 +58,27 @@
 
 Подключаются, только когда возникает соответствующая задача:
 
-- **`$imagegen`** — растровые иллюстрации, текстуры и заглушки при отсутствии готового фотобанка (с последующей оптимизацией в AVIF/WebP по [ADR 0007](decisions/0007-assets-and-media.md)).
+- **`$imagegen`** — растровые иллюстрации, текстуры и заглушки при отсутствии готового фотобанка (с последующей оптимизацией в AVIF/WebP по [ADR 0007](decisions/frontend/0007-assets-and-media.md)).
 - **`$research`** — исследование внешней документации и спецификаций незнакомых API (эквайринг, CRM, Telegram Bot API).
 - **`$tdd`** — разработка через тестирование для сложной бизнес-логики (схемы Zod, калькуляторы цен, финансовые расчеты) на Vitest.
 - **`$diagnosing-bugs`** — структурированная локализация трудноуловимых багов, утечек памяти и просадок FPS.
-- **`$resolving-merge-conflicts`** — пошаговое разрешение конфликтов слияния по [ADR 0011](decisions/0011-git-workflow-and-commits.md).
+- **`$resolving-merge-conflicts`** — пошаговое разрешение конфликтов слияния по [ADR 0011](decisions/common/0011-git-workflow-and-commits.md).
 - **`$request-refactor-plan`** — безопасный пошаговый план рефакторинга крупного модуля на серию атомарных коммитов.
 - **`$codebase-design`** — проектирование чистых интерфейсов нестандартных модулей по FSD-Lite.
+
+---
+
+## 5. Плагины Claude Code (опционально)
+
+Работают только в Claude Code, ставятся один раз в окружение пользователя, а не в репозиторий, и не заменяют навыки из §3–4.
+
+| Плагин | Установка | Что делает в проекте |
+|---|---|---|
+| `security-guidance` | `/plugin install security-guidance@claude-plugins-official` | Не блокирующие предупреждения о небезопасном коде: regex-шаблоны при `Edit`/`Write` (например, сырой `innerHTML`, захардкоженные секреты), LLM-ревью diff в конце хода и ревью при `git commit`. Поддерживает правила [ADR 0008](decisions/frontend/0008-forms-and-api.md) о выводе сырого HTML и запрет секретов из AGENTS.md, но не заменяет `$code-review` |
+
+Требования и ограничения `security-guidance` ([README плагина](https://github.com/anthropics/claude-code/tree/main/plugins/security-guidance)):
+- Claude Code CLI ≥ 2.1.144 и Python 3.8+ в `PATH`.
+- Ревью отправляет на API модели пути и фрагменты измененных файлов и расходует токены.
+- Слои отключаются переменными окружения: `ENABLE_STOP_REVIEW=0`, `ENABLE_COMMIT_REVIEW=0`, `ENABLE_PATTERN_RULES=0`, весь плагин — `SECURITY_GUIDANCE_DISABLE=1`.
+
+Другие плагины не используются. `superpowers`, `frontend-design` и `playwright` (MCP) дублируют навыки §3 или противоречат правилам проекта.

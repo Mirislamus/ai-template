@@ -164,7 +164,7 @@ TypeScript и современный JavaScript — фундамент наде�
   1. Внешние библиотеки и вендоры (`zod`, `nanostores`).
   2. Внутренние модули по путям-алиасам (`@/shared/...`, `@/features/...`, `@/widgets/...`).
   3. Относительные локальные импорты (`./types`, `./utils`).
-- **Автоматический контроль:** порядок проверяет `perfectionist/sort-imports`, форму `import type` — `@typescript-eslint/consistent-type-imports`; исправление командой `eslint --fix` (конфиг — [docs/setup.md](../setup.md) §2.4).
+- **Автоматический контроль:** порядок проверяет `perfectionist/sort-imports`, форму `import type` — `@typescript-eslint/consistent-type-imports`; исправление командой `eslint --fix` (конфиг — [docs/setup/frontend.md](../../setup/frontend.md) §2.2).
 
 ---
 
@@ -241,7 +241,7 @@ TypeScript и современный JavaScript — фундамент наде�
 - **Запрет прямого чтения `import.meta.env` и `process.env`:** в коде модулей, утилит и страниц запрещено обращаться к переменным окружения напрямую.
 - **Централизованный модуль конфигурации:**
   - Единая точка входа для публичных переменных — `src/shared/config/env.ts`; модули импортируют строго типизированный объект `import { env } from '@/shared/config/env';`.
-  - **Astro:** все переменные объявляются в `env.schema` файла `astro.config.ts` ([docs/setup.md](../setup.md) §3.1), Astro проверяет их при сборке. `env.ts` собирает публичные значения из `astro:env/client`:
+  - **Astro:** все переменные объявляются в `env.schema` файла `astro.config.ts` ([docs/setup/frontend.md](../../setup/frontend.md) §3.1), Astro проверяет их при сборке. `env.ts` собирает публичные значения из `astro:env/client`:
     ```ts
     // src/shared/config/env.ts
     import { PUBLIC_API_URL, PUBLIC_GA_ID, PUBLIC_SITE_URL, PUBLIC_YM_ID } from 'astro:env/client';

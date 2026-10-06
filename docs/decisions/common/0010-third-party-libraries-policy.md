@@ -75,6 +75,13 @@
   - `dompurify` — санитизация сырого HTML.
   - `schema-dts` — типы JSON-LD (devDependency).
 - **Интеграции и адаптеры Astro:** `@astrojs/react`, `@astrojs/sitemap`, `@astrojs/check`, адаптеры `@astrojs/node`, `@astrojs/cloudflare`, `@astrojs/vercel`, `@astrojs/netlify` (по выбранному хостингу).
+- **Бэкенд (`apps/api`, [ADR 0019](../backend/0019-backend-architecture.md)–[0023](../backend/0023-security-logging-and-config.md)):**
+  - `elysia` — HTTP-фреймворк; `@elysia/eden` — типизированный клиент API (в `apps/web`); `@elysia/openapi` — документация API вне продакшена.
+  - `drizzle-orm` — ORM; `drizzle-kit` — генерация миграций (devDependency).
+  - `better-auth` + `@better-auth/drizzle-adapter` — авторизация и сессии.
+  - `pino` — структурированное логирование.
+  - `file-type` — определение типа загружаемого файла по содержимому.
+  - `@types/bun` — типы рантайма Bun (devDependency).
 - **Инструменты разработки (devDependencies):** `typescript`, `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`, `eslint-config-prettier`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard-scss`, `stylelint-order`, `sass`, `vitest`, `happy-dom`, `@playwright/test`, `html-validate`, `rollup-plugin-visualizer`, `@next/bundle-analyzer`.
 
 ---
@@ -89,6 +96,7 @@
    - Проверить вес через Bundlephobia или bundlejs.com.
    - **Лимит:** не более **10–15 Кб** gzipped.
    - Пакет обязан быть чистым ESM-модулем и поддерживать полноценный Tree-shaking (не затягивать неиспользуемый код).
+   - Лимит веса относится к клиентскому бандлу. Для пакетов `apps/api` вместо него проверяется работа в рантайме Bun.
 3. **Качество и типизация:**
    - Обязательное наличие нативных типов TypeScript (`index.d.ts` в пакете или официальный `@types/...`).
    - Активная разработка (релиз за последние 6–12 месяцев), высокий индекс доверия и отсутствие уязвимостей (`bun audit`).

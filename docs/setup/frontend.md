@@ -1,14 +1,14 @@
-# Руководство по развертыванию проекта (docs/setup.md)
+# Развертывание фронтенда (docs/setup/frontend.md)
 
-Пошаговая инструкция для разработчиков и AI-агентов по инициализации проекта, настройке инструментов качества и созданию базовой структуры. Этот документ — единственный источник эталонных конфигов; ADR описывают правила и ссылаются сюда.
+Инициализация фронтенда (Astro или Next.js), эталонные конфиги инструментов качества, фреймворка и базовых стилей. Сначала выполняется [common.md](common.md): структура репозитория, `package.json`, Prettier и переменные окружения. ADR описывают правила и ссылаются сюда.
 
-Версии пакетов не фиксируются в документации: при старте проекта ставятся актуальные стабильные версии ([ADR 0010](decisions/0010-third-party-libraries-policy.md) §1). Конфиги ниже проверяются командой `bun run check` сразу после копирования.
+Конфиги ниже проверяются командой `bun run check` сразу после копирования.
 
 ---
 
 ## 1. Инициализация проекта через Bun
 
-Перед стартом изучите [PRODUCT.md](../PRODUCT.md) и выберите профиль согласно [ADR 0001](decisions/0001-project-architecture.md). Файлы шаблона в корне (`.gitignore`, `.gitattributes`, `.editorconfig`, `.prettierrc`, `.env.example`) уже на месте.
+Перед стартом изучите [PRODUCT.md](../../PRODUCT.md) и выберите профиль согласно [ADR 0001](../decisions/frontend/0001-project-architecture.md). Файлы шаблона в корне (`.gitignore`, `.gitattributes`, `.editorconfig`, `.prettierrc`, `.env.example`) уже на месте. В проекте с бэкендом команды выполняются в каталоге `apps/web` ([common.md](common.md) §1).
 
 ### Профиль А: Astro (лендинги, каталоги, контентные сайты — по умолчанию)
 ```bash
@@ -46,25 +46,15 @@ bun add -d sass prettier stylelint stylelint-config-standard-scss stylelint-orde
 # 4. Для sitemap используется app/sitemap.ts (ADR 0013), отдельный пакет не нужен
 ```
 
-В профиле Next.js остается сгенерированный `eslint.config.mjs` (`eslint-config-next`), в его конец добавляются блоки `rules` и `perfectionist` из §2.4. Из `.prettierrc` удаляются `plugins` и `overrides`.
+В профиле Next.js остается сгенерированный `eslint.config.mjs` (`eslint-config-next`), в его конец добавляются блоки `rules` и `perfectionist` из §2.2. Из `.prettierrc` удаляются `plugins` и `overrides`.
 
 ---
 
 ## 2. Эталонные конфигурации инструментов качества
 
-### 2.1. `package.json`: пакетный менеджер и окружение (ADR 0012)
-```jsonc
-{
-  "packageManager": "bun@<версия из bun --version>",
-  "engines": {
-    "node": ">=24.0.0",
-    "bun": ">=<версия из bun --version>"
-  }
-}
-```
-Значения записываются фактическими версиями на момент инициализации.
+`packageManager`, `engines` и `.prettierrc` — [common.md](common.md) §2–3.
 
-### 2.2. `tsconfig.json` (строгая типобезопасность по ADR 0004)
+### 2.1. `tsconfig.json` (строгая типобезопасность по ADR 0004)
 
 Профиль Astro:
 ```json
@@ -85,10 +75,7 @@ bun add -d sass prettier stylelint stylelint-config-standard-scss stylelint-orde
 
 Профиль Next.js: сгенерированный `tsconfig.json` (`strict: true`) дополняется `"noUncheckedIndexedAccess": true`; алиас `@/*` указывает на `./src/*` и `baseUrl` не используется.
 
-### 2.3. `.prettierrc`
-Единственный источник — корневой [.prettierrc](../.prettierrc). Правила форматирования описаны в [ADR 0009](decisions/0009-tooling-and-linting.md) §1.
-
-### 2.4. `eslint.config.mjs` (Flat Config, ADR 0004, 0005, 0009)
+### 2.2. `eslint.config.mjs` (Flat Config, ADR 0004, 0005, 0009)
 ```javascript
 import eslint from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
@@ -156,7 +143,7 @@ export default defineConfig([
 ]);
 ```
 
-### 2.5. `.stylelintrc.mjs` (порядок свойств и ограничения по ADR 0003 и ADR 0009)
+### 2.3. `.stylelintrc.mjs` (порядок свойств и ограничения по ADR 0003 и ADR 0009)
 ```javascript
 export default {
   extends: ['stylelint-config-standard-scss'],
@@ -197,7 +184,7 @@ export default {
 };
 ```
 
-### 2.6. Секция `scripts` в `package.json`
+### 2.4. Секция `scripts` в `package.json`
 
 Профиль Astro:
 ```json
@@ -224,7 +211,7 @@ export default {
 
 Профиль Next.js отличается командами `"dev": "next dev"`, `"build": "next build"`, `"start": "next start"`, `"typecheck": "tsc --noEmit"`, `"build:analyze": "ANALYZE=true next build"`; остальные команды совпадают. Переменные окружения в скриптах задаются записью `VAR=value команда`: `bun run` выполняет скрипты в кроссплатформенной оболочке Bun, отдельный `cross-env` не нужен.
 
-### 2.7. Конфиги тестов (ADR 0014)
+### 2.5. Конфиги тестов (ADR 0014)
 
 `vitest.config.ts` (Astro):
 ```ts
@@ -315,7 +302,7 @@ export const collections = { faq };
 
 ## 4. Структура папок и базовые стили
 
-Дерево `src/` описано в [ARCHITECTURE.md](../ARCHITECTURE.md). Глобальные стили создаются в `src/shared/styles/` тремя файлами ([ADR 0003](decisions/0003-scss-standards.md)); имена и смысл токенов — [design.md](design.md).
+Дерево `src/` описано в [ARCHITECTURE.md](../../ARCHITECTURE.md). Глобальные стили создаются в `src/shared/styles/` тремя файлами ([ADR 0003](../decisions/frontend/0003-scss-standards.md)); имена и смысл токенов — [design.md](../design.md).
 
 ### `src/shared/styles/_tokens.scss`
 ```scss
@@ -475,7 +462,7 @@ $breakpoints: (
   cursor: pointer;
 }
 ```
-Миксин `custom-scrollbar` добавляется по необходимости ([ADR 0003](decisions/0003-scss-standards.md) §12).
+Миксин `custom-scrollbar` добавляется по необходимости ([ADR 0003](../decisions/frontend/0003-scss-standards.md) §12).
 
 ### `src/shared/styles/global.scss`
 ```scss
@@ -583,10 +570,4 @@ $breakpoints: (
 }
 ```
 
-Шрифты подключаются через `@font-face` из `public/fonts/` ([ADR 0003](decisions/0003-scss-standards.md) §10).
-
----
-
-## 5. Переменные окружения
-
-Шаблон — [.env.example](../.env.example). Локальный `.env` копируется из него и не коммитится. Переменные читаются только через `astro:env` или `src/shared/config/env.ts` ([ADR 0004](decisions/0004-ts-js-standards.md) §13).
+Шрифты подключаются через `@font-face` из `public/fonts/` ([ADR 0003](../decisions/frontend/0003-scss-standards.md) §10).

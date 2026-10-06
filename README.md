@@ -2,7 +2,7 @@
 
 Инженерный шаблон для создания быстрых веб-сайтов, лендингов и веб-сервисов с помощью AI-агентов и разработчиков. Приоритеты: производительность (пороги — [docs/quality.md](docs/quality.md)), строгая типобезопасность и модульная архитектура.
 
-> **Как использовать шаблон:** пошаговая инструкция для разработчиков и AI-агентов — в [USAGE.md](USAGE.md).
+> **Как использовать шаблон:** создайте репозиторий кнопкой **Use this template** на GitHub (или скопируйте файлы в чистую папку) и отправьте AI-агенту промпт из [PROMPT.md](PROMPT.md). Пошаговая инструкция для разработчиков и AI-агентов — в [USAGE.md](USAGE.md).
 
 ---
 
@@ -19,6 +19,7 @@
 - **Формы и валидация:** `react-hook-form` + `zod` + `imask`.
 - **Иконки и уведомления:** `lucide-react`, `sonner`.
 - **Контроль качества:** Prettier, ESLint, Stylelint, Vitest, Playwright, `html-validate`.
+- **Бэкенд (опционально):** Elysia, Drizzle ORM, PostgreSQL, Better Auth, Docker Compose; подключается по решению в PRODUCT.md ([ADR 0019](docs/decisions/backend/0019-backend-architecture.md)). Команды `apps/api` — [docs/setup/backend.md](docs/setup/backend.md) §3.
 
 Полный перечень и правила выбора — [docs/tech.md](docs/tech.md).
 
@@ -31,11 +32,13 @@
 - **Node.js:** `>= 24.0.0` (LTS).
 
 ### Установка и запуск
-Новый проект создается по руководству [docs/setup.md](docs/setup.md). Дальше:
+Новый проект создается по руководствам [docs/setup/](docs/setup/common.md): общие настройки, фронтенд, бэкенд (если выбран). Дальше:
 ```bash
 bun install
 bun run dev
 ```
+В монорепо с бэкендом dev-серверы запускаются из корня отдельными командами `bun run dev:web` и `bun run dev:api` ([docs/setup/common.md](docs/setup/common.md) §2).
+
 Использование `npm`, `yarn` и `pnpm` запрещено: конфликт lock-файлов.
 
 ---
@@ -46,7 +49,7 @@ bun run dev
 |---|---|
 | `bun run dev` | Локальный сервер разработки |
 | `bun run build` | Сборка в продакшен |
-| `bun run preview` | Предпросмотр собранного проекта |
+| `bun run preview` | Предпросмотр собранного проекта (Astro; в Next.js — `bun run start`) |
 | `bun run check` | **Единый конвейер качества:** Prettier + ESLint + Stylelint + проверка типов |
 | `bun run lint` | ESLint и Stylelint |
 | `bun run format` | Форматирование Prettier |
@@ -55,6 +58,8 @@ bun run dev
 | `bun run test:e2e` | Сквозные smoke-тесты Playwright |
 | `bun run validate:html` | Проверка валидности собранной разметки (`html-validate`) |
 | `bun run build:analyze` | Сборка с отчетом о размерах бандла (`stats.html`) |
+
+Эталонные `scripts`: фронтенд — [docs/setup/frontend.md](docs/setup/frontend.md) §2.4, бэкенд — [docs/setup/backend.md](docs/setup/backend.md) §3.
 
 ---
 
@@ -68,7 +73,7 @@ bun run dev
 
 - **Оперативные руководства (`docs/`):**
   - [docs/tech.md](docs/tech.md) — технологический стек и правила выбора библиотек.
-  - [docs/setup.md](docs/setup.md) — развертывание проекта и эталонные конфиги.
+  - [docs/setup/](docs/setup/common.md) — развертывание проекта и эталонные конфиги: [common.md](docs/setup/common.md), [frontend.md](docs/setup/frontend.md), [backend.md](docs/setup/backend.md).
   - [docs/skills.md](docs/skills.md) — регламент AI-навыков.
   - [docs/design.md](docs/design.md) — дизайн-система: сетка, брейкпоинты, токены, состояния, анти-шаблоны.
   - [docs/quality.md](docs/quality.md) — чеклист геометрии, пороги Lighthouse и Core Web Vitals, кроссбраузерность.
