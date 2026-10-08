@@ -21,6 +21,9 @@ STATE.md                # Текущий статус проекта
 .prettierrc             # Единая конфигурация форматирования
 .env.example            # Шаблон переменных окружения
 
+.claude/
+└── agents/             # Субагенты Claude Code: planner, explorer, frontend-dev(-deep), backend-dev(-deep), reviewer, qa
+
 docs/
 ├── tech.md             # Технологический стек и одобренные библиотеки
 ├── setup/              # Развертывание через Bun и эталонные конфиги
@@ -28,11 +31,14 @@ docs/
 │   ├── frontend.md     # Astro / Next.js, линтеры, тесты, базовые стили и токены
 │   └── backend.md      # Elysia, Drizzle, Docker Compose, бэкапы
 ├── skills.md           # Регламент AI-навыков и их совместимость с проектом
+├── agents.md           # Уровни сложности, разбиение задач, субагенты
 ├── design.md           # Дизайн-система: сетка, токены, состояния, анти-шаблоны
 ├── quality.md          # Чеклист качества, пороги Lighthouse, кроссбраузерность
 ├── seo.md              # Оперативные SEO-стандарты страниц, OpenGraph
 ├── content.md          # Типографика, инфостиль, согласие на обработку данных
-├── tasks.md            # Журнал задач и бэклог
+├── tasks.md            # Индекс задач: уровень, статус, ссылка на карточку
+├── tasks/              # Карточки задач уровня Medium и выше
+│   └── task-template.md
 ├── pages/              # Паспорта страниц
 │   ├── page-template.md
 │   ├── 404.md

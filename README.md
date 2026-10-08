@@ -75,6 +75,7 @@ bun run dev
   - [docs/tech.md](docs/tech.md) — технологический стек и правила выбора библиотек.
   - [docs/setup/](docs/setup/common.md) — развертывание проекта и эталонные конфиги: [common.md](docs/setup/common.md), [frontend.md](docs/setup/frontend.md), [backend.md](docs/setup/backend.md).
   - [docs/skills.md](docs/skills.md) — регламент AI-навыков.
+  - [docs/agents.md](docs/agents.md) — уровни сложности, разбиение задач и субагенты.
   - [docs/design.md](docs/design.md) — дизайн-система: сетка, брейкпоинты, токены, состояния, анти-шаблоны.
   - [docs/quality.md](docs/quality.md) — чеклист геометрии, пороги Lighthouse и Core Web Vitals, кроссбраузерность.
   - [docs/seo.md](docs/seo.md) — метаданные, иерархия заголовков, OpenGraph.
