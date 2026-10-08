@@ -26,3 +26,4 @@ yarn-debug.log*
 .DS_Store
 Thumbs.db
 .impeccable/
+.claude/settings.local.json
