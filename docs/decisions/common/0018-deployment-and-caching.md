@@ -73,15 +73,15 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 server {
     listen 80;
     listen [::]:80;
-    server_name domain.ru;
-    return 301 https://domain.ru$request_uri;
+    server_name domain.uz;
+    return 301 https://domain.uz$request_uri;
 }
 
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
-    server_name domain.ru;
+    server_name domain.uz;
 
     root /var/www/site;
     index index.html;
@@ -171,7 +171,7 @@ server {
   docker compose pull
   docker compose run --rm migrate
   docker compose up -d api worker
-  curl -fsS https://domain.ru/api/health
+  curl -fsS https://domain.uz/api/health
   ```
   Если миграция завершилась ошибкой, следующие шаги не выполняются и продолжает работать прежняя версия.
 - **Логи контейнеров** пишутся драйвером `journald` и хранятся 14 дней ([ADR 0023](../backend/0023-security-logging-and-config.md) §5).

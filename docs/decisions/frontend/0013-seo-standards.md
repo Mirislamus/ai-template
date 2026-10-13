@@ -18,15 +18,15 @@
 ### 1. Канонические URL и нормализация слэшей
 
 - **Нормализация концевого слэша (`trailingSlash: 'never'`):**
-  - В проекте фиксируется единый формат адресов **без слэша на конце** (`https://site.ru/services`).
+  - В проекте фиксируется единый формат адресов **без слэша на конце** (`https://site.uz/services`).
   - Запросы с закрывающим слэшем (`/services/`) автоматически редиректятся через постоянный 301-редирект на адрес без слэша (конфигурация сервера — [ADR 0018](../common/0018-deployment-and-caching.md) §3).
   - В Astro: `trailingSlash: 'never'` совместно с `build: { format: 'file' }` (страница `/services` собирается в `services.html`).
-  - Исключение: корень домена записывается со слэшем (`https://domain.ru/`).
+  - Исключение: корень домена записывается со слэшем (`https://domain.uz/`).
 - **Обязательный абсолютный тег `<link rel="canonical">`:**
   - Присутствует в `<head>` на каждой странице сайта.
   - Формируется как полный абсолютный адрес без UTM-меток, сессионных параметров и хешей:
     ```html
-    <link rel="canonical" href="https://domain.ru/catalog/product-name">
+    <link rel="canonical" href="https://domain.uz/catalog/product-name">
     ```
   - Это защищает от санкций за дублированный контент при рекламных кампаниях и склеивает поисковый вес.
 
@@ -35,7 +35,7 @@
 ### 2. Автоматическая генерация `sitemap.xml` и `robots.txt`
 
 - **Карта сайта (`sitemap.xml`):**
-  - В Astro: генерация на этапе сборки через плагин `@astrojs/sitemap` с обязательным указанием базового домена в конфиге (`site: 'https://domain.ru'`).
+  - В Astro: генерация на этапе сборки через плагин `@astrojs/sitemap` с обязательным указанием базового домена в конфиге (`site: 'https://domain.uz'`).
   - В Next.js: генерация через `app/sitemap.ts`.
   - **Исключения:** из карты сайта автоматически исключаются страницы `/404`, `/api/*`, `/admin/*`, технические подтверждения заявок (`/success`).
   - Поле `lastmod` генерируется автоматически на основе даты изменения файла в Git или даты публикации в CMS.
@@ -48,7 +48,7 @@
     Allow: /
     Disallow: /api/
 
-    Sitemap: https://domain.ru/sitemap-index.xml
+    Sitemap: https://domain.uz/sitemap-index.xml
     ```
 
 ---
@@ -95,9 +95,9 @@
 - **Связка языковых версий (`hreflang`):**
   - При наличии 2 и более локализаций каждая страница обязана содержать двусторонние ссылки на свои языковые копии:
     ```html
-    <link rel="alternate" hreflang="ru" href="https://domain.ru/page">
-    <link rel="alternate" hreflang="en" href="https://domain.ru/en/page">
-    <link rel="alternate" hreflang="x-default" href="https://domain.ru/page">
+    <link rel="alternate" hreflang="ru" href="https://domain.uz/page">
+    <link rel="alternate" hreflang="en" href="https://domain.uz/en/page">
+    <link rel="alternate" hreflang="x-default" href="https://domain.uz/page">
     ```
   - Директива `x-default` обязательна и указывает на базовую версию сайта для пользователей из неперечисленных стран.
 - **Физические URL для локализаций:**

@@ -13,8 +13,8 @@
   - `<title>`: [Ключевой запрос] — [Бренд] (строго 50–60 символов).
   - `<meta name="description">`: УТП + факты + призыв к действию (строго 140–160 символов).
   - `<h1>`: ровно один главный смысловой заголовок страницы.
-  - `<link rel="canonical">`: `https://domain.ru/services/web-design` (абсолютный URL без слэша на конце).
-  - `og:image`: `https://domain.ru/images/og/[page-slug].jpg` (1200×630 px).
+  - `<link rel="canonical">`: `https://domain.uz/services/web-design` (абсолютный URL без слэша на конце).
+  - `og:image`: `https://domain.uz/images/og/[page-slug].jpg` (1200×630 px).
 
 ---
 

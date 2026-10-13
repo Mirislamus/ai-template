@@ -90,7 +90,7 @@
     required 
     aria-describedby="phone-error" 
     aria-invalid="true" 
-    placeholder="+7 (___) ___-__-__" 
+    placeholder="+998 (__) ___-__-__" 
   />
   <span id="phone-error" role="alert" class="field-error">Введите корректный номер телефона</span>
 </div>
@@ -210,7 +210,7 @@
       <tr>
         <th scope="row">Стандарт</th>
         <td>до 15 м²</td>
-        <td>от 50 000 ₽</td>
+        <td>от 5 000 000 сум</td>
       </tr>
     </tbody>
   </table>
@@ -377,17 +377,17 @@
 Контактная информация автора или компании в шапке/подвале/на странице контактов оборачивается в `<address>`:
 ```html
 <address class="contacts-block">
-  <a href="tel:+79991234567" class="contacts-block__link">+7 (999) 123-45-67</a>
+  <a href="tel:+998901234567" class="contacts-block__link">+998 (90) 123-45-67</a>
   <a href="mailto:info@example.com" class="contacts-block__link">info@example.com</a>
-  <span>г. Москва, ул. Примерная, д. 10</span>
+  <span>г. Ташкент, ул. Примерная, д. 10</span>
 </address>
 ```
 
 #### Стандарты оформления ссылок контактов:
-- **Телефон:** строго `href="tel:+79991234567"` (в `href` — международный формат с `+` и без пробелов/скобок, в тексте ссылки — читаемый формат).
+- **Телефон:** строго `href="tel:+998901234567"` (в `href` — международный формат с `+` и без пробелов/скобок, в тексте ссылки — читаемый формат).
 - **Email:** строго `href="mailto:info@example.com"`.
 - **Telegram:** `href="https://t.me/username"` с `target="_blank" rel="noopener noreferrer"`.
-- **WhatsApp:** `href="https://wa.me/79991234567"` (номер в международном формате без знака `+`).
+- **WhatsApp:** `href="https://wa.me/998901234567"` (номер в международном формате без знака `+`).
 
 ---
 

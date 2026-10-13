@@ -257,7 +257,7 @@ import { defineConfig, envField } from 'astro/config';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  site: 'https://domain.ru', // заменить на боевой домен
+  site: 'https://domain.uz', // заменить на боевой домен
   trailingSlash: 'never', // ADR 0013
   build: { format: 'file' }, // /page → page.html, без каталога и слэша
   adapter: node({ mode: 'standalone' }),

@@ -27,7 +27,7 @@
 ```html
 <title>Разработка быстрых сайтов под ключ для бизнеса — WebStudio</title>
 <meta name="description" content="..." />
-<link rel="canonical" href="https://domain.ru/services/web-design" />
+<link rel="canonical" href="https://domain.uz/services/web-design" />
 <meta name="robots" content="index, follow" />
 ```
 
@@ -80,12 +80,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Разработка быстрых сайтов под ключ для бизнеса — WebStudio" />
 <meta property="og:description" content="Создаем быстрые сайты с оценкой Lighthouse 100. Бесплатный расчет за 15 минут!" />
-<meta property="og:url" content="https://domain.ru/services" />
-<meta property="og:image" content="https://domain.ru/images/og-services.jpg" />
+<meta property="og:url" content="https://domain.uz/services" />
+<meta property="og:image" content="https://domain.uz/images/og-services.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://domain.ru/images/og-services.jpg" />
+<meta name="twitter:image" content="https://domain.uz/images/og-services.jpg" />
 ```
 
 - **Требования к картинке `og:image`:**
@@ -101,7 +101,7 @@
 
 - [ ] Тег `<title>` уникален, содержит главный ключ в начале и укладывается в 50–60 символов.
 - [ ] Тег `description` емко передает УТП, содержит призыв к действию и укладывается в 140–160 символов.
-- [ ] Тег `<link rel="canonical">` указывает абсолютный адрес без параметров и без слэша на конце (кроме корня домена `https://domain.ru/`).
+- [ ] Тег `<link rel="canonical">` указывает абсолютный адрес без параметров и без слэша на конце (кроме корня домена `https://domain.uz/`).
 - [ ] На странице присутствует ровно один `<h1>`.
 - [ ] Все секции имеют `<h2>` (включая скрытые через `.visually-hidden`), иерархия заголовков не нарушена.
 - [ ] Все контентные изображения имеют понятный `alt`, декоративные элементы — `alt=""`.

@@ -146,11 +146,11 @@
 - **Категорический запрет сторонних библиотек:** `moment`, `dayjs`, `numeral` не используются.
 - **Соответствие локали и `Intl`-тега** задается одним объектом:
   ```ts
-  const INTL_LOCALES = { ru: 'ru-RU', en: 'en-US' } as const satisfies Record<SupportedLocale, string>;
+  const INTL_LOCALES = { ru: 'ru-UZ', en: 'en-US' } as const satisfies Record<SupportedLocale, string>;
   ```
 - **Цены и валюты (`Intl.NumberFormat`):**
   ```ts
-  export function formatPrice(amount: number, locale: SupportedLocale, currency = 'RUB'): string {
+  export function formatPrice(amount: number, locale: SupportedLocale, currency = 'UZS'): string {
     return new Intl.NumberFormat(INTL_LOCALES[locale], {
       style: 'currency',
       currency,

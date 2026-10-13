@@ -118,7 +118,7 @@ TypeScript и современный JavaScript — фундамент наде�
 - **`function` declaration — для верхнеуровневых чистых утилит и сервисов:**
   ```ts
   export function formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('ru-RU').format(date);
+    return new Intl.DateTimeFormat('ru-UZ').format(date);
   }
   ```
   - Преимущества: явное имя в стектрейсах и профайлере, естественный hoisting (вспомогательные мелкие функции можно убирать в низ файла).
