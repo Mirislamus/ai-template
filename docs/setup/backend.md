@@ -9,7 +9,10 @@
 ```bash
 # 1. Пакеты бэкенда (ADR 0010 §3)
 cd apps/api
-bun add elysia @elysia/openapi zod drizzle-orm better-auth @better-auth/drizzle-adapter pino file-type
+bun add elysia @elysia/openapi zod drizzle-orm pino
+# По функциям продукта (PRODUCT.md), в задаче с первым импортом:
+# авторизация (ADR 0022) — bun add better-auth @better-auth/drizzle-adapter
+# загрузка файлов (ADR 0023 §7) — bun add file-type
 bun add -d drizzle-kit @types/bun typescript eslint @eslint/js typescript-eslint eslint-plugin-perfectionist eslint-config-prettier prettier
 
 # 2. Клиент API во фронтенде (ADR 0020 §1)

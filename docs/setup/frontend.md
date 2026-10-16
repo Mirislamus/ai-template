@@ -18,8 +18,8 @@ bun create astro@latest . --template minimal --typescript strict --install --no-
 # 2. Интеграции Astro
 bun add @astrojs/react @astrojs/sitemap
 
-# 3. Одобренный белый стек (ADR 0010)
-bun add react react-dom clsx ky @tanstack/react-query nanostores @nanostores/react @nanostores/persistent react-hook-form @hookform/resolvers zod imask lucide-react sonner react-error-boundary
+# 3. Базовые пакеты
+bun add react react-dom clsx
 
 # 4. Инструменты разработки и качества
 bun add -d typescript @astrojs/check @types/react @types/react-dom sass prettier prettier-plugin-astro eslint @eslint/js typescript-eslint eslint-plugin-astro eslint-plugin-react-hooks eslint-plugin-perfectionist eslint-config-prettier stylelint stylelint-config-standard-scss stylelint-order vitest happy-dom @playwright/test html-validate rollup-plugin-visualizer schema-dts
@@ -27,9 +27,6 @@ bun add -d typescript @astrojs/check @types/react @types/react-dom sass prettier
 # 5. Адаптер под хостинг (нужен эндпоинтам /api/*, ADR 0001 §7; выбирается на допросе по продукту)
 bunx astro add node        # VPS с Nginx и PM2
 # либо: bunx astro add cloudflare | vercel | netlify
-
-# 6. По необходимости: вывод сырого HTML (ADR 0008 §6)
-bun add dompurify
 ```
 
 ### Профиль Б: Next.js (веб-сервисы, личные кабинеты, панели управления)
@@ -37,14 +34,34 @@ bun add dompurify
 # 1. Создание проекта на актуальной версии Next.js App Router
 bun create next-app@latest . --typescript --eslint --app --src-dir --no-tailwind --import-alias "@/*" --use-bun
 
-# 2. Одобренный белый стек
-bun add clsx ky @tanstack/react-query zustand react-hook-form @hookform/resolvers zod imask lucide-react sonner react-error-boundary
+# 2. Базовые пакеты
+bun add clsx
 
 # 3. Инструменты разработки и качества
 bun add -d sass prettier stylelint stylelint-config-standard-scss stylelint-order eslint-plugin-perfectionist eslint-config-prettier @eslint/js typescript-eslint vitest happy-dom @playwright/test html-validate @next/bundle-analyzer schema-dts
 
 # 4. Для sitemap используется app/sitemap.ts (ADR 0013), отдельный пакет не нужен
 ```
+
+### Пакеты по функциям продукта
+
+Базовые команды выше ставят только то, на что опираются конфиги и скрипты §2. Остальные пакеты белого списка ([ADR 0010](../decisions/common/0010-third-party-libraries-policy.md) §3) ставятся, только когда функция есть в [PRODUCT.md](../../PRODUCT.md) или в карточке текущей задачи, в той же задаче, где появляется их первый импорт.
+
+| Функция | Пакеты |
+|---|---|
+| Первый React-остров (Astro) или клиентский компонент (Next.js) | `react-error-boundary` ([ADR 0005](../decisions/frontend/0005-react-standards.md)) |
+| UI-иконки | `lucide-react` ([ADR 0007](../decisions/frontend/0007-assets-and-media.md)) |
+| Формы с валидацией | `react-hook-form @hookform/resolvers zod` |
+| Маски ввода (телефон, суммы) | `imask` |
+| Запросы к API из клиента | `ky @tanstack/react-query` |
+| Общий стейт между островами (Astro) | `nanostores @nanostores/react`; хранение в `localStorage` — `@nanostores/persistent` |
+| Глобальный клиентский стейт (Next.js) | `zustand` |
+| Всплывающие уведомления | `sonner` |
+| Карусель | `embla-carousel-react` |
+| Полноэкранный просмотр с pinch-to-zoom | `photoswipe` |
+| Вывод сырого HTML ([ADR 0008](../decisions/frontend/0008-forms-and-api.md) §6) | `dompurify` |
+
+Если функция удалена из продукта, ее пакеты удаляются через `bun remove` в той же задаче.
 
 В профиле Next.js остается сгенерированный `eslint.config.mjs` (`eslint-config-next`), в его конец добавляются блоки `rules` и `perfectionist` из §2.2. Из `.prettierrc` удаляются `plugins` и `overrides`.
 
