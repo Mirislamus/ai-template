@@ -44,6 +44,10 @@
   - `docs(decisions): add ADR 0011 for git workflow`
   - `perf(images): convert hero banners to avif format`
 
+#### Авторство:
+- Автор коммита — пользователь из его `git config` (`user.name`, `user.email`).
+- В сообщения коммитов и описания Pull Request не добавляются трейлеры `Co-Authored-By` и подписи AI-ассистентов. Для Claude Code это закреплено в [.claude/settings.json](../../../.claude/settings.json) (`attribution`).
+
 ---
 
 ### 2. Атомарность коммитов (Atomic Commits)

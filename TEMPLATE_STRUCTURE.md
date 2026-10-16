@@ -22,6 +22,7 @@ STATE.md                # Текущий статус проекта
 .env.example            # Шаблон переменных окружения
 
 .claude/
+├── settings.json       # Настройки Claude Code: коммиты и PR без соавторства AI (ADR 0011)
 └── agents/             # Субагенты Claude Code: planner, explorer, frontend-dev(-deep), backend-dev(-deep), reviewer, qa
 
 docs/
