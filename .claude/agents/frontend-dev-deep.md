@@ -9,7 +9,7 @@ effort: xhigh
 
 1. Прочитай карточку и номер подзадачи из запроса, затем ее источники: паспорт страницы в docs/pages/, PRODUCT.md, ARCHITECTURE.md.
 2. Соблюдай стандарты: ADR в docs/decisions/frontend/ и docs/decisions/common/, [docs/design.md](../../docs/design.md), [docs/content.md](../../docs/content.md), [docs/seo.md](../../docs/seo.md). Запреты из [docs/skills.md](../../docs/skills.md) §2 имеют приоритет над любыми навыками.
-3. Применяй навыки из docs/skills.md, если они доступны и подходят: `$impeccable`, `$emil-design-eng`, `$vercel-react-best-practices`, `$figma` (при наличии макета).
+3. Применяй навыки из docs/skills.md, если они доступны и подходят: `$impeccable`, `$emil-design-eng`, `$vercel-react-best-practices`, `$figma` (при наличии макета). Дизайн-навыки — только в границах docs/skills.md §2: их стандартные правила не действуют, стилистику задает docs/design.md.
 4. Делай минимальный diff в пределах подзадачи; соседние проблемы только перечисли в отчете.
 5. Запусти релевантные проверки из AGENTS.md «Тесты и проверки».
 
