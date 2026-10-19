@@ -21,6 +21,7 @@ React используется для интерактивных модулей 
   ```tsx
   import cx from 'clsx';
   import type { ReactNode } from 'react';
+
   import s from './Card.module.scss';
 
   type CardProps = {
@@ -94,9 +95,9 @@ React используется для интерактивных модулей 
       ref?: Ref<HTMLButtonElement>;
     }
 
-    export function Button({ ref, children, ...restProps }: ButtonProps) {
+    export function Button({ ref, type = 'button', children, ...restProps }: ButtonProps) {
       return (
-        <button ref={ref} {...restProps}>
+        <button ref={ref} type={type} {...restProps}>
           {children}
         </button>
       );

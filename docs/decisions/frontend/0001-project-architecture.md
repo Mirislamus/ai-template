@@ -108,9 +108,9 @@
   - Контентные сущности (статьи, услуги, тарифы, кейсы) хранятся в `src/content/` в форматах `.md`, `.mdx` или `.json`.
   - Каждая коллекция объявляется в `src/content.config.ts` с загрузчиком `glob()` и схемой Zod из `astro/zod`:
     ```ts
-    import { defineCollection } from 'astro:content';
     import { glob } from 'astro/loaders';
     import { z } from 'astro/zod';
+    import { defineCollection } from 'astro:content';
 
     const services = defineCollection({
       loader: glob({ pattern: '**/*.md', base: './src/content/services' }),

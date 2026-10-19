@@ -8,6 +8,8 @@ coverage/
 playwright-report/
 test-results/
 stats.html
+next-env.d.ts
+*.tsbuildinfo
 
 # Локальные загрузки файлов API (ADR 0023 §7)
 uploads/
@@ -16,6 +18,7 @@ uploads/
 .env
 .env.*
 !.env.example
+api.env
 
 # Логи
 *.log

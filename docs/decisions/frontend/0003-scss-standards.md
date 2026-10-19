@@ -197,17 +197,17 @@ src/shared/styles/
   *,
   *::before,
   *::after {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
 }
 
 @layer base {
   html {
-    scrollbar-gutter: stable;
-    background-color: var(--color-bg-page);
     color: var(--color-text-primary);
+    background-color: var(--color-bg-page);
+    scrollbar-gutter: stable;
   }
 }
 ```
@@ -287,7 +287,7 @@ src/shared/styles/
 Пример подключения (`global.scss`):
 ```scss
 @font-face {
-  font-family: 'Inter';
+  font-family: Inter;
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -295,7 +295,7 @@ src/shared/styles/
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: Inter;
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -334,9 +334,9 @@ src/shared/styles/
 // 2. Обрезка текста с многоточием на N строк
 @mixin line-clamp($lines: 1) {
   display: -webkit-box;
+  overflow: hidden;
   -webkit-line-clamp: $lines;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 // 3. Сброс дефолтных стилей кнопки
@@ -345,10 +345,10 @@ src/shared/styles/
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: none;
-  background: none;
   font: inherit;
   color: inherit;
+  background: none;
+  border: none;
   cursor: pointer;
 }
 

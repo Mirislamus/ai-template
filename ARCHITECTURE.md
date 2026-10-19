@@ -13,6 +13,7 @@ src/
 ├── widgets/          # Крупные блоки и секции (header, footer, hero, faq, benefits)
 ├── features/         # Пользовательские сценарии и формы (lead-form, theme-toggle, catalog-filter)
 ├── content/          # Контент Astro Content Collections (схемы — в src/content.config.ts)
+├── assets/           # Логотипы, брендовые SVG и изображения для оптимизации сборщиком (ADR 0007 §4)
 └── shared/           # Переиспользуемый базис без привязки к конкретному блоку
     ├── ui/           # Атомарный UI-кит (кнопки, инпуты, карточки, модалки)
     ├── styles/       # Токены, миксины, глобальные стили (_tokens.scss, _tools.scss, global.scss)

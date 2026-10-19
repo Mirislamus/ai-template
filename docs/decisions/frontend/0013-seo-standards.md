@@ -18,7 +18,7 @@
 ### 1. Канонические URL и нормализация слэшей
 
 - **Нормализация концевого слэша (`trailingSlash: 'never'`):**
-  - В проекте фиксируется единый формат адресов **без слэша на конце** (`https://site.uz/services`).
+  - В проекте фиксируется единый формат адресов **без слэша на конце** (`https://domain.uz/services`).
   - Запросы с закрывающим слэшем (`/services/`) автоматически редиректятся через постоянный 301-редирект на адрес без слэша (конфигурация сервера — [ADR 0018](../common/0018-deployment-and-caching.md) §3).
   - В Astro: `trailingSlash: 'never'` совместно с `build: { format: 'file' }` (страница `/services` собирается в `services.html`).
   - Исключение: корень домена записывается со слэшем (`https://domain.uz/`).
@@ -47,6 +47,7 @@
     User-agent: *
     Allow: /
     Disallow: /api/
+    Disallow: /admin/
 
     Sitemap: https://domain.uz/sitemap-index.xml
     ```

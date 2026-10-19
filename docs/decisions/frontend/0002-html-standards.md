@@ -323,12 +323,12 @@
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
-  padding: 0 !important;
   margin: -1px !important;
+  padding: 0 !important;
   overflow: hidden !important;
-  clip-path: inset(50%) !important;
   white-space: nowrap !important;
   border: 0 !important;
+  clip-path: inset(50%) !important;
 }
 ```
 
@@ -406,11 +406,11 @@
   left: var(--space-4);
   z-index: var(--z-tooltip);
   padding: var(--space-3) var(--space-5);
-  background-color: var(--color-accent);
-  color: var(--color-text-inverse);
-  border-radius: var(--radius-sm);
   font-weight: 600;
   text-decoration: none;
+  color: var(--color-text-inverse);
+  background-color: var(--color-accent);
+  border-radius: var(--radius-sm);
 
   &:focus {
     top: var(--space-4);

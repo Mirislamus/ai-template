@@ -41,7 +41,7 @@ TypeScript и современный JavaScript — фундамент наде�
     ```ts
     declare global {
       interface Window {
-        ym?: (...args: unknown[]) => void;
+        ym?: (counterId: number, method: string, ...params: unknown[]) => void;
       }
     }
     ```
@@ -222,7 +222,7 @@ TypeScript и современный JavaScript — фундамент наде�
 - **Запрет смешанных типов `T | null | undefined`:** тип поля обязан быть однозначным (либо опционален, либо nullable).
 - **Оператор Nullish Coalescing (`??`) вместо `||`:**
   - Для задания дефолтных значений строк, чисел и булевых типов строго используется оператор `??`.
-- **Явные проверки на пустоту:** запрещено использовать неявное `if (!value)` для числовых или булевых значений (проверять строго: `if (value === null)`, `if (value === undefined)` или `if (typeof value === 'number')`).
+- **Явные проверки на пустоту:** запрещено использовать неявное `if (!value)` для чисел и для булевых значений, которые могут быть `null` или `undefined` (проверять строго: `if (value === null)`, `if (value === undefined)` или `if (typeof value === 'number')`). Для значения типа `boolean` без `null` и `undefined` проверка `if (!isOpen)` допустима.
 
 ---
 

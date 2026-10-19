@@ -45,12 +45,13 @@
 
 - **Конфигурация `.stylelintrc.mjs`:** `stylelint-config-standard-scss` + плагин порядка свойств `stylelint-order`.
 - **Порядок CSS-свойств (единый список, закреплен в конфиге):**
-  1. Позиционирование (`position`, `inset`, `top`…`left`, `z-index`).
-  2. Отображение и сетка (`display`, `flex-*`, `grid-*`, `gap`, `align-items`, `justify-content`).
-  3. Блочная модель (`width`/`height` и их `min`/`max`, `margin`, `padding`, `box-sizing`, `overflow`).
-  4. Типографика (`font-*`, `line-height`, `text-*`, `color`).
-  5. Визуальное оформление (`background*`, `border*`, `box-shadow`, `outline`, `opacity`).
+  1. Позиционирование (`position`, `inset*`, `top`…`left`, `z-index`).
+  2. Отображение и сетка (`display`, `flex*`, `grid*`, `gap`, выравнивание `place-*`, `align-*`, `justify-*`, `order`).
+  3. Блочная модель (`width`/`height` и их `min`/`max`, `aspect-ratio`, `margin*` и `padding*` вместе с логическими свойствами, `box-sizing`, `overflow*`).
+  4. Типографика (`font*`, `line-height`, `letter-spacing`, `text-*`, `white-space`, `overflow-wrap`, `color`).
+  5. Визуальное оформление (`background*`, `border*`, `box-shadow`, `outline*`, `opacity`).
   6. Анимации и интерактив (`transform`, `transition`, `animation`, `cursor`, `pointer-events`, `user-select`).
+  - Свойства вне списка (`clip-path`, `isolation`, `content` и др.) идут в конце блока. Порядок исправляется автоматически командой `stylelint --fix`.
 - **Критические ограничения:**
   - `selector-max-id: 0` — запрет селекторов по ID.
   - `selector-no-qualifying-type: true` — запрет `div.card`.

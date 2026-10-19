@@ -131,7 +131,7 @@
   - `src/pages/index.astro` — главная (RU), `src/pages/services.astro` — услуги (RU).
   - `src/pages/en/index.astro` — главная (EN), `src/pages/en/services.astro` — услуги (EN).
 - **Переключатель языков** реализуется нативными HTML-ссылками `<a>`:
-  ```html
+  ```astro
   <nav aria-label="Язык / Language">
     <a href="/services" class:list={[{ active: currentLang === 'ru' }]}>RU</a>
     <a href="/en/services" class:list={[{ active: currentLang === 'en' }]}>EN</a>

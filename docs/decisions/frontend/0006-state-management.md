@@ -49,7 +49,8 @@
   - Использовать официальный хук `useStore` из `@nanostores/react`:
     ```tsx
     import { useStore } from '@nanostores/react';
-    import { $cart, addToCart } from '@/shared/stores/cart.store';
+
+    import { $cart } from '@/shared/stores/cart.store';
 
     export function CartCounter() {
       const cart = useStore($cart);

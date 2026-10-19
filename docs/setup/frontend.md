@@ -8,40 +8,66 @@
 
 ## 1. Инициализация проекта через Bun
 
-Перед стартом изучите [PRODUCT.md](../../PRODUCT.md) и выберите профиль согласно [ADR 0001](../decisions/frontend/0001-project-architecture.md). Файлы шаблона в корне (`.gitignore`, `.gitattributes`, `.editorconfig`, `.prettierrc`, `.env.example`) уже на месте. В проекте с бэкендом команды выполняются в каталоге `apps/web` ([common.md](common.md) §1).
+Перед стартом изучите [PRODUCT.md](../../PRODUCT.md) и выберите профиль согласно [ADR 0001](../decisions/frontend/0001-project-architecture.md). Файлы шаблона в корне (`.gitignore`, `.gitattributes`, `.editorconfig`, `.prettierrc`, `.env.example`) уже на месте.
+
+Генераторы `create-astro` и `create-next-app` создают проект только в пустой папке, а в корне шаблона уже лежит документация. Поэтому проект без бэкенда создается во временной папке с именем проекта (оно попадает в поле `name` файла `package.json`, в примерах — `my-site`) и переносится в корень без `README.md` и `.gitignore`: у шаблона свои. В проекте с бэкендом генератор запускается прямо в пустом каталоге `apps/web` ([common.md](common.md) §1) с именем `.` вместо `my-site`: перенос не нужен, `README.md` и `.gitignore` генератора удаляются. Флаги ниже отвечают на все вопросы генераторов и отключают их собственный `AGENTS.md`: правила агентов задает корневой [AGENTS.md](../../AGENTS.md).
 
 ### Профиль А: Astro (лендинги, каталоги, контентные сайты — по умолчанию)
 ```bash
-# 1. Создание проекта на актуальной версии Astro
-bun create astro@latest . --template minimal --typescript strict --install --no-git
+# 1. Создание проекта на актуальной версии Astro во временной папке
+bun create astro@latest my-site --template minimal --no-install --no-git --no-ai --skip-houston
 
-# 2. Интеграции Astro
+# 2. Перенос в корень (README.md и .gitignore у шаблона свои) и установка
+rm my-site/README.md my-site/.gitignore
+cp -r my-site/. .
+rm -rf my-site
+bun install
+
+# 3. Интеграции Astro
 bun add @astrojs/react @astrojs/sitemap
 
-# 3. Базовые пакеты
+# 4. Базовые пакеты
 bun add react react-dom clsx
 
-# 4. Инструменты разработки и качества
-bun add -d typescript @astrojs/check @types/react @types/react-dom sass prettier prettier-plugin-astro eslint @eslint/js typescript-eslint eslint-plugin-astro eslint-plugin-react-hooks eslint-plugin-perfectionist eslint-config-prettier stylelint stylelint-config-standard-scss stylelint-order vitest happy-dom @playwright/test html-validate rollup-plugin-visualizer schema-dts
+# 5. Инструменты разработки и качества
+bun add -d typescript@^6 @astrojs/check @types/react @types/react-dom sass prettier prettier-plugin-astro eslint @eslint/js typescript-eslint eslint-plugin-astro eslint-plugin-react-hooks eslint-plugin-perfectionist eslint-config-prettier stylelint stylelint-config-standard-scss stylelint-order vitest happy-dom @playwright/test html-validate rollup-plugin-visualizer schema-dts
 
-# 5. Адаптер под хостинг (нужен эндпоинтам /api/*, ADR 0001 §7; выбирается на допросе по продукту)
-bunx astro add node        # VPS с Nginx и PM2
-# либо: bunx astro add cloudflare | vercel | netlify
+# 6. Браузеры Playwright: chromium — профиль desktop, webkit — профиль mobile (§2.5)
+bunx playwright install chromium webkit
+
+# 7. Адаптер под хостинг (нужен эндпоинтам /api/*, ADR 0001 §7; выбирается на допросе по продукту)
+bunx astro add node --yes        # VPS с Nginx и PM2
+# либо адаптер платформы: bunx astro add cloudflare --yes (vercel, netlify)
 ```
+
+- Сгенерированные `tsconfig.json` и `astro.config.mjs` заменяются эталонными (§2.1, §3.1). Файл `astro.config.mjs` удаляется: Astro ищет его раньше `astro.config.ts` и иначе не прочитает эталонный конфиг.
+- TypeScript ставится последней версией 6.x: `typescript-eslint` и `@astrojs/check` не поддерживают TypeScript 7 (peerDependencies, [ADR 0010](../decisions/common/0010-third-party-libraries-policy.md) §1).
 
 ### Профиль Б: Next.js (веб-сервисы, личные кабинеты, панели управления)
 ```bash
-# 1. Создание проекта на актуальной версии Next.js App Router
-bun create next-app@latest . --typescript --eslint --app --src-dir --no-tailwind --import-alias "@/*" --use-bun
+# 1. Создание проекта на актуальной версии Next.js App Router во временной папке
+bun create next-app@latest my-site --typescript --eslint --app --src-dir --no-tailwind --import-alias "@/*" --use-bun --no-react-compiler --no-cache-components --no-agents-md --no-agent-feedback --skip-install --disable-git
 
-# 2. Базовые пакеты
+# 2. Перенос в корень (README.md и .gitignore у шаблона свои) и установка
+rm my-site/README.md my-site/.gitignore
+cp -r my-site/. .
+rm -rf my-site
+bun install
+
+# 3. Базовые пакеты
 bun add clsx
 
-# 3. Инструменты разработки и качества
+# 4. Инструменты разработки и качества
 bun add -d sass prettier stylelint stylelint-config-standard-scss stylelint-order eslint-plugin-perfectionist eslint-config-prettier @eslint/js typescript-eslint vitest happy-dom @playwright/test html-validate @next/bundle-analyzer schema-dts
 
-# 4. Для sitemap используется app/sitemap.ts (ADR 0013), отдельный пакет не нужен
+# 5. Браузеры Playwright: chromium — профиль desktop, webkit — профиль mobile (§2.5)
+bunx playwright install chromium webkit
+
+# 6. Для sitemap используется app/sitemap.ts (ADR 0013), отдельный пакет не нужен
 ```
+
+- `--no-react-compiler` — React Compiler не включается ([ADR 0005](../decisions/frontend/0005-react-standards.md) §8).
+- `--no-cache-components` — рендеринг и ревалидация описаны в [ADR 0001](../decisions/frontend/0001-project-architecture.md) §5 для модели без Cache Components (`revalidate`, `dynamic`).
 
 ### Пакеты по функциям продукта
 
@@ -144,7 +170,7 @@ export default defineConfig([
         'error',
         {
           type: 'natural',
-          newlinesBetween: 'always',
+          newlinesBetween: 1,
           internalPattern: ['^@/.*'],
           groups: [
             ['type-builtin', 'value-builtin', 'type-external', 'value-external'],
@@ -178,20 +204,36 @@ export default {
     'declaration-property-value-disallowed-list': {
       '/^transition/': ['/\\ball\\b/'],
     },
+    // Группы — ADR 0009 §3; свойства вне списка идут в конце блока
     'order/properties-order': [
       [
         // 1. Позиционирование
-        'position', 'inset', 'top', 'right', 'bottom', 'left', 'z-index',
+        'position', 'inset', 'inset-block', 'inset-inline', 'top', 'right', 'bottom', 'left', 'z-index',
         // 2. Отображение и сетка
-        'display', 'flex', 'flex-direction', 'flex-wrap', 'align-items', 'justify-content', 'gap',
-        'grid', 'grid-template-columns', 'grid-template-rows',
+        'display', 'flex', 'flex-flow', 'flex-direction', 'flex-wrap', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'grid', 'grid-template', 'grid-template-columns', 'grid-template-rows', 'grid-template-areas',
+        'grid-auto-flow', 'grid-auto-columns', 'grid-auto-rows', 'grid-area', 'grid-column', 'grid-row',
+        'gap', 'row-gap', 'column-gap',
+        'place-content', 'place-items', 'place-self', 'align-content', 'align-items', 'align-self',
+        'justify-content', 'justify-items', 'justify-self', 'order',
         // 3. Блочная модель
         'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'aspect-ratio',
-        'margin', 'padding', 'box-sizing', 'overflow',
+        'margin', 'margin-block', 'margin-block-start', 'margin-block-end',
+        'margin-inline', 'margin-inline-start', 'margin-inline-end',
+        'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'padding', 'padding-block', 'padding-block-start', 'padding-block-end',
+        'padding-inline', 'padding-inline-start', 'padding-inline-end',
+        'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+        'box-sizing', 'overflow', 'overflow-x', 'overflow-y',
         // 4. Типографика
-        'font-family', 'font-size', 'font-weight', 'line-height', 'text-align', 'text-wrap', 'color',
+        'font', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing',
+        'text-align', 'text-transform', 'text-decoration', 'text-overflow', 'text-wrap',
+        'white-space', 'overflow-wrap', 'color',
         // 5. Визуальное оформление
-        'background', 'background-color', 'border', 'border-radius', 'box-shadow', 'outline', 'opacity',
+        'background', 'background-color', 'background-image', 'background-position', 'background-size',
+        'background-repeat', 'border', 'border-width', 'border-style', 'border-color',
+        'border-block', 'border-inline', 'border-top', 'border-right', 'border-bottom', 'border-left',
+        'border-radius', 'box-shadow', 'outline', 'outline-offset', 'opacity',
         // 6. Анимации и интерактив
         'transform', 'transition', 'animation', 'cursor', 'pointer-events', 'user-select',
       ],
@@ -226,7 +268,7 @@ export default {
 }
 ```
 
-Профиль Next.js отличается командами `"dev": "next dev"`, `"build": "next build"`, `"start": "next start"`, `"typecheck": "tsc --noEmit"`, `"build:analyze": "ANALYZE=true next build"`; остальные команды совпадают. Переменные окружения в скриптах задаются записью `VAR=value команда`: `bun run` выполняет скрипты в кроссплатформенной оболочке Bun, отдельный `cross-env` не нужен.
+Профиль Next.js отличается командами `"dev": "next dev"`, `"build": "next build"`, `"start": "next start"`, `"typecheck": "tsc --noEmit"`, `"build:analyze": "ANALYZE=true next build"`; остальные команды совпадают. Переменные окружения в скриптах задаются записью `VAR=value команда`: `bun run` выполняет скрипты в Bun Shell на Windows и в системной оболочке на Linux и macOS, обе понимают такую запись, отдельный `cross-env` не нужен ([ADR 0012](../decisions/common/0012-build-and-package-manager.md) §4).
 
 ### 2.5. Конфиги тестов (ADR 0014)
 
@@ -300,9 +342,9 @@ export default defineConfig({
 
 ### 3.2. `src/content.config.ts` (Astro Content Collections)
 ```ts
-import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { defineCollection } from 'astro:content';
 
 const faq = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/faq' }),
@@ -342,13 +384,13 @@ export const collections = { faq };
   --space-32: 128px;
 
   /* Цвета (семантические роли; значения заменяются под бренд проекта) */
-  --color-bg-page: #ffffff;
+  --color-bg-page: #fff;
   --color-bg-surface: #f8fafc;
   --color-bg-muted: #f1f5f9;
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
   --color-text-muted: #64748b;
-  --color-text-inverse: #ffffff;
+  --color-text-inverse: #fff;
   --color-border-subtle: #e2e8f0;
   --color-border-strong: #94a3b8;
   --color-accent: #0f766e;
@@ -462,9 +504,9 @@ $breakpoints: (
 
 @mixin line-clamp($lines: 1) {
   display: -webkit-box;
+  overflow: hidden;
   -webkit-line-clamp: $lines;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 @mixin button-reset {
@@ -472,10 +514,10 @@ $breakpoints: (
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: none;
-  background: none;
   font: inherit;
   color: inherit;
+  background: none;
+  border: none;
   cursor: pointer;
 }
 ```
@@ -484,34 +526,33 @@ $breakpoints: (
 ### `src/shared/styles/global.scss`
 ```scss
 @use './tokens';
-
 @layer reset, base;
 
 @layer reset {
   *,
   *::before,
   *::after {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
 }
 
 @layer base {
   html {
-    scrollbar-gutter: stable;
-    background-color: var(--color-bg-page);
-    color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-page);
+    scrollbar-gutter: stable;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    text-wrap: balance;
     line-height: var(--line-height-tight);
+    text-wrap: balance;
   }
 
   h1 {
@@ -528,8 +569,8 @@ $breakpoints: (
 
   p {
     max-width: 680px;
-    text-wrap: pretty;
     line-height: var(--line-height-normal);
+    text-wrap: pretty;
     overflow-wrap: anywhere;
   }
 
@@ -550,12 +591,12 @@ $breakpoints: (
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
-  padding: 0 !important;
   margin: -1px !important;
+  padding: 0 !important;
   overflow: hidden !important;
-  clip-path: inset(50%) !important;
   white-space: nowrap !important;
   border: 0 !important;
+  clip-path: inset(50%) !important;
 }
 
 .skip-link {
@@ -564,11 +605,11 @@ $breakpoints: (
   left: var(--space-4);
   z-index: var(--z-tooltip);
   padding: var(--space-3) var(--space-5);
-  background-color: var(--color-accent);
-  color: var(--color-text-inverse);
-  border-radius: var(--radius-sm);
   font-weight: 600;
   text-decoration: none;
+  color: var(--color-text-inverse);
+  background-color: var(--color-accent);
+  border-radius: var(--radius-sm);
 
   &:focus {
     top: var(--space-4);

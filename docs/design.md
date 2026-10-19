@@ -73,7 +73,7 @@
   - Реализуется через переопределение значений тех же самых переменных в селекторе `[data-theme="dark"]`:
     ```css
     :root {
-      --color-bg-page: #ffffff;
+      --color-bg-page: #fff;
       --color-text-primary: #0f172a;
       --color-border-subtle: #e2e8f0;
     }
@@ -184,9 +184,9 @@
 - **Однострочное обрезание с многоточием (Ellipsis):**
   - Для заголовков карточек или таблиц в одну строку:
     ```scss
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     ```
 - **Многострочный зажим текста (Line-Clamp):**
   - Для анонсов статей, отзывов и карточек товаров:

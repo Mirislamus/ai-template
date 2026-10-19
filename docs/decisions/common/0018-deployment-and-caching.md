@@ -38,16 +38,23 @@
 
 #### Сценарий Б: Собственный сервер Linux / Nginx (деплой по SSH)
 - **Статика (Astro):**
-  - Сборка на CI или локально (`bun run build`), синхронизация `dist/` на сервер по SSH:
+  - Сборка на CI или локально (`bun run build`), синхронизация на сервер по SSH. Без адаптера Astro собирает сайт в `dist/`; с адаптером (эндпоинты `/api/*`) статика лежит в `dist/client/`, а серверный код — в `dist/server/`. В корень Nginx попадает только статика:
     ```bash
-    rsync -avz --delete dist/ user@server:/var/www/site/
+    rsync -avz --delete dist/ user@server:/var/www/site/          # без адаптера
+    rsync -avz --delete dist/client/ user@server:/var/www/site/   # с адаптером @astrojs/node
     ```
   - Nginx сразу отдает новые файлы, простоя нет.
-- **Node-процесс** (эндпоинты `/api/*` через `@astrojs/node`, Next.js SSR):
-  - Процесс запускается под управлением **PM2**; Nginx проксирует на него запросы (см. конфиг):
-    ```bash
-    pm2 reload ecosystem.config.js --update-env
-    ```
+- **Node-процесс** (эндпоинты `/api/*` через `@astrojs/node`, Next.js SSR) работает под управлением **PM2**; Nginx проксирует на него запросы (см. конфиг). Серверная часть Astro выкладывается вне корня Nginx, зависимости ставятся на сервере:
+  ```bash
+  rsync -avz --delete dist/server package.json bun.lock user@server:/srv/site/
+  ssh user@server 'cd /srv/site && bun install --production --frozen-lockfile && pm2 reload site'
+  ```
+  Первый запуск на сервере, после создания `.env` (без него процесс не стартует). Файл `/srv/site/.env` (права `600`) содержит серверные переменные из `.env.example`, а также `HOST=127.0.0.1` и `PORT=4321`: без `HOST` сервер слушает `localhost`, который может разрешиться в IPv6 `::1`, и Nginx не достучится до `127.0.0.1`.
+  ```bash
+  cd /srv/site
+  pm2 start server/entry.mjs --name site --node-args="--env-file=.env"
+  pm2 save
+  ```
 - Деплой без контейнеров является нормальным сценарием; Docker не обязателен.
 
 #### Сценарий В: проект с бэкендом (Docker Compose)
@@ -83,6 +90,9 @@ server {
     http2 on;
     server_name domain.uz;
 
+    ssl_certificate /etc/letsencrypt/live/domain.uz/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/domain.uz/privkey.pem;
+
     root /var/www/site;
     index index.html;
 
@@ -112,8 +122,9 @@ server {
         access_log off;
     }
 
-    # 3. Серверные эндпоинты Astro (сценарий Б, Node-процесс)
-    location /api/ {
+    # 3. Серверные эндпоинты Astro (сценарий Б, Node-процесс);
+    #    ^~ не дает regex-локации статики перехватить адреса вида /api/*.xml
+    location ^~ /api/ {
         include snippets/security-headers.conf;
         add_header Cache-Control "no-store";
         proxy_pass http://127.0.0.1:4321;
@@ -131,6 +142,7 @@ server {
 }
 ```
 
+- Сертификат выпускается certbot (Let's Encrypt). Пока файлов сертификата нет, блок `443` не включается: без них `nginx -t` завершается ошибкой.
 - Сборка `build.format: 'file'` создает `services.html` для адреса `/services`, поэтому `try_files` подбирает `$uri.html`.
 - Строка `error_page 404 /404.html;` отдает страницу [404](../../pages/404.md) со статусом 404.
 - Заголовки `Content-Security-Policy` и `Strict-Transport-Security` в шаблон не входят: они настраиваются под конкретный проект.
@@ -146,6 +158,7 @@ server {
    - `bun run check` — форматирование, линтеры и типы.
    - `bun run test` — модульные тесты Vitest.
    - `bun run build` — сборка в рамках бюджета чанков.
+   - `bunx playwright install --with-deps chromium webkit` — браузеры и системные библиотеки для smoke-тестов.
    - `bun run validate:html` и `bun run test:e2e` — проверка разметки и smoke-сценарии.
    - При падении любого шага слияние в `main` запрещено. Поскольку локальных хуков в шаблоне нет ([ADR 0011](0011-git-workflow-and-commits.md)), этот этап — единственная автоматическая проверка `check`.
    - **Дополнительно в проекте с бэкендом:**
@@ -164,8 +177,9 @@ server {
 - **Сервисы** `docker-compose.yml` (эталон — [docs/setup/backend.md](../../setup/backend.md)):
   - `db` — PostgreSQL 18, данные в именованном volume, смонтированном в `/var/lib/postgresql` (путь образов PostgreSQL 18 и новее, [Docker Hub](https://hub.docker.com/_/postgres)); порт не публикуется;
   - `api` — образ API, порт `127.0.0.1:3000`, каталог загрузок смонтирован с хоста;
-  - `worker` — тот же образ, команда `bun run src/worker.ts` ([ADR 0019](../backend/0019-backend-architecture.md) §5);
-  - `migrate` — тот же образ, команда `bun run db:migrate`, запускается вручную (`profiles: [migrate]`).
+  - `worker` — тот же образ, команда `bun src/worker.ts` ([ADR 0019](../backend/0019-backend-architecture.md) §5);
+  - `migrate` — тот же образ, команда `bun src/db/migrate.ts`, запускается вручную (`profiles: [migrate]`).
+- **Переменные окружения:** `api`, `worker` и `migrate` получают только `api.env`; `.env` нужен для подстановки в `docker-compose.yml` и инициализации базы. Так пароль суперпользователя PostgreSQL не попадает в контейнеры приложения ([ADR 0021](../backend/0021-database-and-migrations.md) §1).
 - **Порядок деплоя:**
   ```bash
   docker compose pull

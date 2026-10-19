@@ -13,7 +13,8 @@ bun add elysia @elysia/openapi zod drizzle-orm pino
 # По функциям продукта (PRODUCT.md), в задаче с первым импортом:
 # авторизация (ADR 0022) — bun add better-auth @better-auth/drizzle-adapter
 # загрузка файлов (ADR 0023 §7) — bun add file-type
-bun add -d drizzle-kit @types/bun typescript eslint @eslint/js typescript-eslint eslint-plugin-perfectionist eslint-config-prettier prettier
+# TypeScript 6: typescript-eslint не поддерживает TypeScript 7 (ADR 0010 §1)
+bun add -d drizzle-kit @types/bun typescript@^6 eslint @eslint/js typescript-eslint eslint-plugin-perfectionist eslint-config-prettier prettier
 
 # 2. Клиент API во фронтенде (ADR 0020 §1)
 cd ../web
@@ -101,7 +102,7 @@ export default defineConfig([
         'error',
         {
           type: 'natural',
-          newlinesBetween: 'always',
+          newlinesBetween: 1,
           internalPattern: ['^#src/.*'],
           groups: [
             ['type-builtin', 'value-builtin', 'type-external', 'value-external'],
@@ -176,7 +177,7 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 ```
-Bun сам загружает `.env` из каталога `apps/api`, при `bun test` — `.env.test`. Имена переменных — [.env.example](../../.env.example), раздел бэкенда.
+Bun сам загружает `.env` из каталога `apps/api`, при `bun test` — `.env.test`. Имена переменных — [.env.example](../../.env.example), раздел бэкенда. Поля `BETTER_AUTH_*` и `UPLOADS_DIR` нужны только при авторизации ([ADR 0022](../decisions/backend/0022-auth-and-access.md)) и загрузке файлов ([ADR 0023](../decisions/backend/0023-security-logging-and-config.md) §7): без этих функций они удаляются из схемы и из `.env.example`, как и пакеты функции.
 
 ---
 
@@ -253,7 +254,7 @@ volumes:
 ```
 Запуск: `docker compose -f compose.dev.yml up -d`, затем `bun run db:migrate` и `bun run dev`.
 
-Тестовая база подключается через `apps/api/.env.test` (`DATABASE_URL=postgres://app:app@localhost:5433/app_test`). Миграции применяются перед прогоном тестов файлом предзагрузки:
+Тестовая база подключается через `apps/api/.env.test` (`DATABASE_URL=postgres://app:app@localhost:5433/app_test`). Файл создается локально и не коммитится (`.env.*` в `.gitignore`); в CI те же переменные задаются в `env` шага тестов. Миграции применяются перед прогоном тестов файлом предзагрузки:
 ```toml
 # apps/api/bunfig.toml
 [test]
@@ -272,7 +273,7 @@ await migrate(db, { migrationsFolder: './drizzle' });
 - Astro — в `astro.config.ts` ([frontend.md](frontend.md) §3.1): `vite: { server: { proxy: { '/api': 'http://localhost:3000' } } }`.
 - Next.js — в `next.config.ts`: `rewrites` с `source: '/api/:path*'` на `http://localhost:3000/api/:path*`.
 
-Серверный код фронтенда обращается к API по `API_INTERNAL_URL` (локально `http://localhost:3000`).
+Серверный код фронтенда обращается к API по `API_INTERNAL_URL` (локально `http://localhost:3000`). В Astro переменная объявляется в `env.schema` ([frontend.md](frontend.md) §3.1) как серверная: `API_INTERNAL_URL: envField.string({ context: 'server', access: 'public', url: true })`.
 
 ---
 
@@ -319,7 +320,7 @@ x-logging: &logging
 
 x-api: &api
   image: ghcr.io/<owner>/<repo>-api:${API_TAG}
-  env_file: .env
+  env_file: api.env
   logging: *logging
   depends_on:
     db:
@@ -371,7 +372,10 @@ services:
 volumes:
   db-data:
 ```
-- `/srv/project/.env` (права `600`) содержит переменные бэкенда, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (суперпользователь для обслуживания) и `APP_DB_USER`, `APP_DB_PASSWORD` (роль приложения). `DATABASE_URL` использует роль приложения и сервис `db`: `postgres://<APP_DB_USER>:<APP_DB_PASSWORD>@db:5432/<POSTGRES_DB>`. `UPLOADS_DIR=/app/apps/api/uploads`. Пароли генерируются командой `openssl rand -hex 32`.
+- Переменные лежат в двух файлах с правами `600`, чтобы контейнеры приложения не получали пароль суперпользователя PostgreSQL ([ADR 0021](../decisions/backend/0021-database-and-migrations.md) §1):
+  - `/srv/project/.env` — подстановка в `docker-compose.yml` и инициализация базы: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (суперпользователь для обслуживания), `APP_DB_USER`, `APP_DB_PASSWORD` (роль приложения), `API_TAG`;
+  - `/srv/project/api.env` — переменные бэкенда из `.env.example` для сервисов `api`, `worker` и `migrate`. `DATABASE_URL` использует роль приложения и сервис `db`: `postgres://<APP_DB_USER>:<APP_DB_PASSWORD>@db:5432/<POSTGRES_DB>`; `UPLOADS_DIR=/app/apps/api/uploads`.
+- Пароли генерируются командой `openssl rand -hex 32`: в отличие от base64, результат не содержит символов `/`, `+` и `=`, которые ломают `DATABASE_URL`.
 - Роль приложения создается скриптом `/srv/project/initdb/01-app-user.sh` ([ADR 0021](../decisions/backend/0021-database-and-migrations.md) §1). Образ PostgreSQL выполняет его один раз, при инициализации пустого тома:
   ```bash
   #!/bin/sh

@@ -22,7 +22,8 @@
   - **Запрещен Axios:** избыточный размер бандла и устаревшая архитектура.
   - Единый инстанс настраивается в `src/shared/api/client.ts` с хуками:
     ```ts
-    import ky, { type HTTPError } from 'ky';
+    import ky from 'ky';
+
     import { env } from '@/shared/config/env';
 
     export const api = ky.create({
@@ -43,7 +44,7 @@
           },
         ],
         afterResponse: [
-          async (_request, _options, response) => {
+          (_request, _options, response) => {
             // Централизованная обработка протухшей сессии
             if (response.status === 401) {
               handleUnauthorizedSession();
@@ -181,7 +182,7 @@
 - **Тотальный отказ от Google reCAPTCHA:** пазлы и картинки убивают конверсию и раздувают клиентский JS на 150+ Кб.
 - **Двухуровневая невидимая защита:**
   1. **Honeypot (Поле-ловушка):**
-     - Скрытое поле `<input type="text" name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" />`.
+     - Скрытое поле `website` с `<label>`, `tabIndex={-1}` и `autoComplete="off"` внутри обертки `.visually-hidden` с `aria-hidden="true"` (разметка — [ADR 0002](0002-html-standards.md) §3).
      - Если поле заполнено (боты автоматически заполняют все поля) — запрос реджектится без отправки лида.
   2. **Time-trap (Временная метка):**
      - Клиент передает в запросе момент рендера формы (`startedAt`, мс). Заявки, отправленные быстрее чем за 1.5 секунды, отсекаются как спам-скрипты.

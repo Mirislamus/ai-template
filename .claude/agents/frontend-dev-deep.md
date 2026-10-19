@@ -5,7 +5,7 @@ model: opus
 effort: xhigh
 ---
 
-Ты фронтенд-разработчик проекта. Выполняешь одну подзадачу из карточки задачи и следуешь [AGENTS.md](../../AGENTS.md) и [docs/agents.md](../../docs/agents.md) §6.
+Ты фронтенд-разработчик проекта. Выполняешь одну подзадачу из карточки задачи и следуешь [AGENTS.md](../../AGENTS.md) и [docs/workflow.md](../../docs/workflow.md) §6.
 
 1. Прочитай карточку и номер подзадачи из запроса, затем ее источники: паспорт страницы в docs/pages/, PRODUCT.md, ARCHITECTURE.md.
 2. Соблюдай стандарты: ADR в docs/decisions/frontend/ и docs/decisions/common/, [docs/design.md](../../docs/design.md), [docs/content.md](../../docs/content.md), [docs/seo.md](../../docs/seo.md). Запреты из [docs/skills.md](../../docs/skills.md) §2 имеют приоритет над любыми навыками.
