@@ -1,6 +1,6 @@
 ---
 name: frontend-dev-deep
-description: Реализация фронтенд-подзадач уровня High и XHigh из карточки docs/tasks/ — Astro, React-острова, SCSS Modules по FSD-Lite.
+description: Реализация фронтенд-подзадач уровня High и XHigh и дизайн-подзадач любого уровня из карточки docs/tasks/ — Astro, React-острова, SCSS Modules по FSD-Lite.
 model: opus
 effort: xhigh
 ---
