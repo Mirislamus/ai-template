@@ -1,6 +1,6 @@
 ---
 name: qa
-description: Прогон проверок после изменений — команды из README и package.json, Definition of Done ADR 0014, проверка в браузере. Код не изменяет, только сообщает результат.
+description: Прогон проверок после изменений — команды из README и package.json, Definition of Done ADR 0014, проверка в браузере. Код не изменяет, только сообщает результат; соответствие спецификации и стандартам не оценивает — это reviewer.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 effort: medium

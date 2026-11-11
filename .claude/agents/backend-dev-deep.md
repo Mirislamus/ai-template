@@ -1,6 +1,6 @@
 ---
 name: backend-dev-deep
-description: Реализация бэкенд-подзадач уровня High и XHigh из карточки docs/tasks/ — apps/api на Bun, Elysia, Drizzle. Только если бэкенд выбран в PRODUCT.md.
+description: Реализация бэкенд-подзадач уровня High и XHigh и зон риска любого уровня из карточки docs/tasks/ — схема БД и миграции, авторизация и права, безопасность, outbox и внешние интеграции, изменение контракта API; apps/api на Bun, Elysia, Drizzle. Только если бэкенд выбран в PRODUCT.md.
 model: opus
 effort: xhigh
 ---
