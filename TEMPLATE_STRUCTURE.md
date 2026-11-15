@@ -8,6 +8,7 @@
 PROMPT.md               # Промпт запуска и дерево обязательного допроса по продукту
 TEMPLATE_STRUCTURE.md   # Эталонная структура файлов репозитория
 USAGE.md                # Пошаговое руководство по использованию шаблона
+CHANGELOG.md            # Версии и история изменений шаблона
 
 AGENTS.md               # Регламент взаимодействия и поведения AI-агентов
 PRODUCT.md              # Паспорт и бизнес-требования к продукту
@@ -21,8 +22,11 @@ STATE.md                # Текущий статус проекта
 .prettierrc             # Единая конфигурация форматирования
 .env.example            # Шаблон переменных окружения
 
+.github/
+└── pull_request_template.md  # Шаблон описания Pull Request
+
 .claude/
-├── settings.json       # Настройки Claude Code: коммиты и PR без соавторства AI (ADR 0011)
+├── settings.json       # Настройки Claude Code: коммиты и PR без соавторства AI (ADR 0011), права на чтение секретов и Git-команды
 └── agents/             # Субагенты Claude Code: planner, explorer, frontend-dev(-deep), backend-dev(-deep), reviewer, qa
 
 docs/
@@ -51,4 +55,4 @@ docs/
     └── common/         # Общее: TypeScript, линтинг, зависимости, Git, Bun, тесты, деплой
 ```
 
-`PROMPT.md`, `TEMPLATE_STRUCTURE.md` и `USAGE.md` — служебные файлы стартового комплекта. Остальные файлы относятся к конкретному разрабатываемому проекту.
+`PROMPT.md`, `TEMPLATE_STRUCTURE.md`, `USAGE.md` и `CHANGELOG.md` — служебные файлы стартового комплекта. Остальные файлы относятся к конкретному разрабатываемому проекту.

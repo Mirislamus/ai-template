@@ -133,3 +133,20 @@
 - Слои отключаются переменными окружения: `ENABLE_STOP_REVIEW=0`, `ENABLE_COMMIT_REVIEW=0`, `ENABLE_PATTERN_RULES=0`, весь плагин — `SECURITY_GUIDANCE_DISABLE=1`.
 
 Другие плагины не используются; плагин `humanizer` — только способ поставки навыка `$humanizer` (§4). `superpowers`, `frontend-design` и `playwright` (MCP) дублируют навыки §3 или противоречат правилам проекта; правила `frontend-design` действуют только в редакции [docs/design.md](design.md) §9 (§2).
+
+---
+
+## 6. Источники и установка
+
+Навыки ставятся один раз в окружение пользователя, а не в репозиторий. Команды — из README источников.
+
+| Навык | Источник | Установка |
+|---|---|---|
+| `$grilling`, `$tdd`, `$diagnosing-bugs`, `$codebase-design`, `$code-review`, `$research` | [mattpocock/skills](https://github.com/mattpocock/skills) | Claude Code: `claude plugin install mattpocock-skills@claude-plugins-official`; другие агенты: `npx skills@latest add mattpocock/skills`. Ставится только один из двух вариантов |
+| `$impeccable` | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | `npx impeccable install`; команда `/impeccable init` не запускается (§3) |
+| `$emil-design-eng` | [emilkowalski/skills](https://github.com/emilkowalski/skills) | `npx skills@latest add emilkowalski/skills` |
+| `$vercel-react-best-practices` | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills), навык `react-best-practices` | `npx skills add vercel-labs/agent-skills` |
+| `$agent-browser` | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) | CLI: `npm install -g agent-browser`, затем `agent-browser install`; навык: `npx skills add vercel-labs/agent-browser` |
+| `$figma` | Плагин Claude Code `figma` | `/plugin install figma@claude-plugins-official` |
+| `$imagegen` | [openai/skills](https://github.com/openai/skills), системный навык Codex | Входит в Codex, отдельно не ставится |
+| `$humanizer` | [blader/humanizer](https://github.com/blader/humanizer) | §4 |

@@ -281,7 +281,7 @@ await migrate(db, { migrationsFolder: './drizzle' });
 
 **Проксирование `/api` в dev-сервере фронтенда** ([ADR 0020](../decisions/backend/0020-api-contract-and-errors.md) §1):
 - Astro — в `astro.config.ts` ([frontend.md](frontend.md) §3.1): `vite: { server: { proxy: { '/api': 'http://localhost:3000' } } }`.
-- Next.js — в `next.config.ts`: `rewrites` с `source: '/api/:path*'` на `http://localhost:3000/api/:path*`.
+- Next.js — в `next.config.ts` ([frontend.md](frontend.md) §3.3): `rewrites` с `source: '/api/:path*'` на `http://localhost:3000/api/:path*`. Порт 3000 занят API, поэтому dev-сервер Next.js запускается на порту 4321: `bun run dev --port 4321`.
 
 Серверный код фронтенда обращается к API по `API_INTERNAL_URL` (локально `http://localhost:3000`). В Astro переменная объявляется в `env.schema` ([frontend.md](frontend.md) §3.1) как серверная: `API_INTERNAL_URL: envField.string({ context: 'server', access: 'public', url: true })`.
 
@@ -451,3 +451,35 @@ docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" restore_check'
     schedule:
       interval: 'weekly'
 ```
+
+---
+
+## 10. CI: дополнения к Quality Gate
+
+В задание `quality` файла `.github/workflows/ci.yml` ([common.md](common.md) §6) добавляются тестовая база и проверки бэкенда ([ADR 0018](../decisions/common/0018-deployment-and-caching.md) §4):
+```yaml
+    services:
+      db-test:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d app_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PUBLIC_SITE_URL: https://domain.uz
+      DATABASE_URL: postgres://app:app@localhost:5433/app_test
+```
+```yaml
+      - run: bun run --filter api db:generate
+      - run: git diff --exit-code apps/api/drizzle
+      - run: bun audit --audit-level=high
+```
+- Корневой `bun run test` запускает и `bun test` в `apps/api`, поэтому база нужна всему заданию. Остальные переменные из `apps/api/.env.test` (§6) добавляются в `env` тем же способом.
+- Скрипты `validate:html` и `test:e2e` есть только во фронтенде: в монорепо шаги вызываются как `bun run --filter web validate:html` и `bun run --filter web test:e2e`.

@@ -1,6 +1,6 @@
 ---
 name: frontend-dev
-description: Реализация фронтенд-подзадач уровня Low и Medium без дизайна из карточки docs/tasks/ — логика Astro и React-островов, данные, конфиги, SEO по FSD-Lite. Дизайн-подзадачи — у frontend-dev-deep.
+description: Реализация фронтенд-подзадач уровня Low и Medium без дизайна из карточки docs/tasks/ — логика Astro, React-островов и Next.js (профиль — в PRODUCT.md), данные, конфиги, SEO по FSD-Lite. Дизайн-подзадачи — у frontend-dev-deep.
 model: sonnet
 effort: medium
 ---

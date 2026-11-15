@@ -54,8 +54,8 @@ cp -r my-site/. .
 rm -rf my-site
 bun install
 
-# 3. Базовые пакеты
-bun add clsx
+# 3. Базовые пакеты (zod — для src/shared/config/env.ts, §3.4)
+bun add clsx zod
 
 # 4. Инструменты разработки и качества
 bun add -d sass stylelint stylelint-config-standard-scss stylelint-order eslint-plugin-perfectionist eslint-config-prettier @eslint/js typescript-eslint vitest happy-dom @playwright/test html-validate @next/bundle-analyzer schema-dts
@@ -89,7 +89,7 @@ bunx playwright install chromium webkit
 
 Если функция удалена из продукта, ее пакеты удаляются через `bun remove` в той же задаче.
 
-В профиле Next.js остается сгенерированный `eslint.config.mjs` (`eslint-config-next`), в его конец добавляются блоки `rules` и `perfectionist` из §2.2. Из `.prettierrc` удаляются `plugins` и `overrides`.
+В профиле Next.js `eslint.config.mjs` собирается из сгенерированного (`eslint-config-next`) и блоков §2.2: после `...nextVitals`, `...nextTs` и `globalIgnores` идут блоки §2.2 от блока `files: ['**/*.{ts,tsx}']` до `prettier` включительно. Из `plugins` убирается `react-hooks` (его подключает `eslint-config-next`), в `globalIgnores` добавляются `coverage`, `playwright-report` и `test-results`; импорты `@eslint/js`, `eslint-plugin-astro` и `eslint-plugin-react-hooks` не нужны. Из `.prettierrc` удаляются `plugins` и `overrides`.
 
 ---
 
@@ -291,7 +291,7 @@ export default {
 }
 ```
 
-Профиль Next.js отличается командами `"dev": "next dev"`, `"build": "next build"`, `"start": "next start"`, `"typecheck": "tsc --noEmit"`, `"build:analyze": "ANALYZE=true next build"`; остальные команды совпадают. Переменные окружения в скриптах задаются записью `VAR=value команда`: `bun run` выполняет скрипты в Bun Shell на Windows и в системной оболочке на Linux и macOS, обе понимают такую запись, отдельный `cross-env` не нужен ([ADR 0012](../decisions/common/0012-build-and-package-manager.md) §4).
+Профиль Next.js отличается командами `"dev": "next dev"`, `"build": "next build"`, `"start": "next start"`, `"typecheck": "tsc --noEmit"`, `"build:analyze": "ANALYZE=true next build"`, `"validate:html": "html-validate \".next/server/app/**/*.html\""` (настройка — §3.5); остальные команды совпадают. Переменные окружения в скриптах задаются записью `VAR=value команда`: `bun run` выполняет скрипты в Bun Shell на Windows и в системной оболочке на Linux и macOS, обе понимают такую запись, отдельный `cross-env` не нужен ([ADR 0012](../decisions/common/0012-build-and-package-manager.md) §4).
 
 ### 2.5. Конфиги тестов (ADR 0014)
 
@@ -307,7 +307,23 @@ export default getViteConfig({
 });
 ```
 
-`playwright.config.ts`:
+`vitest.config.ts` (Next.js):
+```ts
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
+  test: {
+    environment: 'happy-dom',
+    include: ['src/**/*.test.ts'],
+  },
+});
+```
+
+`playwright.config.ts` (в профиле Next.js команда `webServer` — `bun run build && bun run start --port 4321`):
 ```ts
 import { defineConfig, devices } from '@playwright/test';
 
@@ -379,6 +395,54 @@ const faq = defineCollection({
 
 export const collections = { faq };
 ```
+
+### 3.3. `next.config.ts` (Next.js)
+```ts
+import bundleAnalyzer from '@next/bundle-analyzer';
+import type { NextConfig } from 'next';
+
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+
+const nextConfig: NextConfig = {};
+
+export default withBundleAnalyzer(nextConfig);
+```
+Отчет `build:analyze` сохраняется в `.next/analyze/` ([ADR 0012](../decisions/common/0012-build-and-package-manager.md) §3).
+
+### 3.4. `src/shared/config/env.ts` (Next.js)
+```ts
+import { z } from 'zod';
+
+const envSchema = z.object({
+  PUBLIC_SITE_URL: z.url(),
+  PUBLIC_API_URL: z.string().min(1).default('/api'),
+  PUBLIC_YM_ID: z.string().min(1).optional(),
+  PUBLIC_GA_ID: z.string().min(1).optional(),
+});
+
+// Next.js подставляет NEXT_PUBLIC_* в клиентский бандл только при обращении по полному имени
+export const env = envSchema.parse({
+  PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || undefined,
+  PUBLIC_YM_ID: process.env.NEXT_PUBLIC_YM_ID || undefined,
+  PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID || undefined,
+});
+```
+В Next.js публичные переменные [.env.example](../../.env.example) получают префикс `NEXT_PUBLIC_`; объект `env` сохраняет те же ключи, что в профиле Astro ([ADR 0004](../decisions/common/0004-ts-js-standards.md) §13).
+
+### 3.5. `html-validate` (Next.js)
+
+`.htmlvalidate.json`:
+```json
+{ "extends": ["html-validate:standard"] }
+```
+`.htmlvalidateignore`:
+```text
+.next/server/app/_global-error.html
+```
+- Next.js кладет собранные страницы в `.next/server/app/`, каталога `dist/` в этом профиле нет.
+- Набор `html-validate:standard` проверяет соответствие стандарту HTML без правил оформления: React выводит самозакрывающиеся теги и булевы атрибуты со значением, на которых правила оформления набора по умолчанию дают ошибки.
+- `_global-error.html` — встроенная страница Next.js без атрибута `lang`. Встроенную страницу 404 заменяет собственная `src/app/not-found.tsx` ([docs/pages/404.md](../pages/404.md)).
 
 ---
 

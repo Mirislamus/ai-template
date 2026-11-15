@@ -112,3 +112,36 @@ updates:
       interval: 'weekly'
 ```
 В проекте с бэкендом добавляется экосистема `docker` ([backend.md](backend.md) §9).
+
+---
+
+## 6. CI: GitHub Actions
+
+`.github/workflows/ci.yml` — этап Quality Gate ([ADR 0018](../decisions/common/0018-deployment-and-caching.md) §4) для проекта без бэкенда:
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_SITE_URL: https://domain.uz
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run test
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium webkit
+      - run: bun run validate:html
+      - run: bun run test:e2e
+```
+- `oven-sh/setup-bun` без параметров ставит версию Bun из поля `packageManager` (§2) ([документация](https://github.com/oven-sh/setup-bun)).
+- В `env` задания перечисляются обязательные публичные переменные сборки ([.env.example](../../.env.example)); секреты передаются через GitHub Secrets ([ADR 0023](../decisions/backend/0023-security-logging-and-config.md) §4).
+- В проекте с бэкендом задание дополняется по [backend.md](backend.md) §10.
+- Этап деплоя зависит от сценария хостинга ([ADR 0018](../decisions/common/0018-deployment-and-caching.md) §2) и добавляется отдельным заданием после выбора хостинга.

@@ -15,6 +15,7 @@
 | 009 | Шаблон: дизайн-навыки подчинены правилам проекта, анти-шаблоны docs/design.md §9 под систему шаблона | Medium | готово | [009](tasks/009-design-skills-boundaries.md) |
 | 010 | Шаблон: форматирование через встроенный `bun fmt` вместо Prettier | Medium | готово | [010](tasks/010-bun-fmt.md) |
 | 011 | Шаблон: противоречия порядка старта, правила задач вне кода, фиксация профиля, охват `format` и `check`, Dependabot | Medium | готово | [011](tasks/011-template-consistency-fixes.md) |
+| 012 | Шаблон: эталонный CI, источники навыков, права Claude Code, CHANGELOG, шаблон PR, эталонные конфиги профиля Next.js | Medium | готово | [012](tasks/012-template-additions.md) |
 
 Статусы: бэклог, в работе, готово.
 

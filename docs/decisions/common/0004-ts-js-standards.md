@@ -249,7 +249,7 @@ TypeScript и современный JavaScript — фундамент наде�
 
     export const env = { PUBLIC_API_URL, PUBLIC_GA_ID, PUBLIC_SITE_URL, PUBLIC_YM_ID } as const;
     ```
-  - **Next.js:** `env.ts` валидирует `process.env` схемой Zod и экспортирует тот же объект `env` (исключение из запрета прямого чтения — только внутри `env.ts`).
+  - **Next.js:** `env.ts` валидирует `process.env` схемой Zod и экспортирует тот же объект `env` (исключение из запрета прямого чтения — только внутри `env.ts`); эталон — [docs/setup/frontend.md](../../setup/frontend.md) §3.4.
   - Приложение немедленно падает при сборке или запуске, если отсутствует обязательная переменная или нарушен ее формат.
 - **Серверные секреты:**
   - В Astro секреты (токены интеграций) объявляются в `env.schema` файла `astro.config.ts` с `access: 'secret'` и читаются из `astro:env/server` только в серверном коде (эндпоинты `src/pages/api/*`). В клиентский код они не попадают.
