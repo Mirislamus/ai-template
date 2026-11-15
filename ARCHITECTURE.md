@@ -101,7 +101,7 @@ packages/
 
 **Общие (`docs/decisions/common/`):**
 - `0004-ts-js-standards.md` — строгий TypeScript и JavaScript, именование, импорты.
-- `0009-tooling-and-linting.md` — Prettier, ESLint, Stylelint.
+- `0009-tooling-and-linting.md` — форматирование `bun fmt`, ESLint, Stylelint.
 - `0010-third-party-libraries-policy.md` — политика версий, черный и белый списки.
 - `0011-git-workflow-and-commits.md` — Conventional Commits, ветки, безопасность Git.
 - `0012-build-and-package-manager.md` — Bun, бюджет бандла, окружение.

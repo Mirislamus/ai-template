@@ -31,7 +31,7 @@
 - **Анимации и появление при скролле:** нативный `IntersectionObserver` + CSS Transitions/Keyframes; обязательный учет `prefers-reduced-motion` ([ADR 0017](decisions/frontend/0017-motion-and-animations.md)).
 - **Инструменты качества и форматирования:**
   - **EditorConfig:** `.editorconfig` (2 пробела, LF, utf-8).
-  - **Форматирование:** Prettier (`.prettierrc` в корне репозитория).
+  - **Форматирование:** встроенный в Bun `bun fmt` (настройки — `.prettierrc` в корне репозитория); в профиле Astro файлы `.astro` форматирует Prettier с `prettier-plugin-astro` ([ADR 0009](decisions/common/0009-tooling-and-linting.md) §1).
   - **Линтинг кода:** ESLint Flat Config (`typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`).
   - **Линтинг стилей:** Stylelint (`stylelint-config-standard-scss`, `stylelint-order`).
   - **Проверка типов:** `astro check` (Astro) или `tsc --noEmit` (Next.js).

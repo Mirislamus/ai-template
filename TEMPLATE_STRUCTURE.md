@@ -28,7 +28,7 @@ STATE.md                # Текущий статус проекта
 docs/
 ├── tech.md             # Технологический стек и одобренные библиотеки
 ├── setup/              # Развертывание через Bun и эталонные конфиги
-│   ├── common.md       # Структура репозитория, package.json, Prettier, окружение
+│   ├── common.md       # Структура репозитория, package.json, .prettierrc, окружение
 │   ├── frontend.md     # Astro / Next.js, линтеры, тесты, базовые стили и токены
 │   └── backend.md      # Elysia, Drizzle, Docker Compose, бэкапы
 ├── skills.md           # Регламент AI-навыков и их совместимость с проектом

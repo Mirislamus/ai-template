@@ -14,7 +14,7 @@ bun add elysia @elysia/openapi zod drizzle-orm pino
 # авторизация (ADR 0022) — bun add better-auth @better-auth/drizzle-adapter
 # загрузка файлов (ADR 0023 §7) — bun add file-type
 # TypeScript 6: typescript-eslint не поддерживает TypeScript 7 (ADR 0010 §1)
-bun add -d drizzle-kit @types/bun typescript@^6 eslint @eslint/js typescript-eslint eslint-plugin-perfectionist eslint-config-prettier prettier
+bun add -d drizzle-kit @types/bun typescript@^6 eslint @eslint/js typescript-eslint eslint-plugin-perfectionist eslint-config-prettier
 
 # 2. Клиент API во фронтенде (ADR 0020 §1)
 cd ../web
@@ -134,8 +134,8 @@ export default defineConfig([
     "start": "bun src/index.ts",
     "worker": "bun src/worker.ts",
     "lint": "eslint . --max-warnings 0",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format": "bun fmt \"src/**/*.ts\"",
+    "format:check": "bun fmt --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "check": "bun run format:check && bun run lint && bun run typecheck",
     "test": "bun test",

@@ -1,6 +1,6 @@
 # Развертывание фронтенда (docs/setup/frontend.md)
 
-Инициализация фронтенда (Astro или Next.js), эталонные конфиги инструментов качества, фреймворка и базовых стилей. Сначала выполняется [common.md](common.md): структура репозитория, `package.json`, Prettier и переменные окружения. ADR описывают правила и ссылаются сюда.
+Инициализация фронтенда (Astro или Next.js), эталонные конфиги инструментов качества, фреймворка и базовых стилей. Сначала выполняется [common.md](common.md): структура репозитория, `package.json`, `.prettierrc` и переменные окружения. ADR описывают правила и ссылаются сюда.
 
 Конфиги ниже проверяются командой `bun run check` сразу после копирования.
 
@@ -58,7 +58,7 @@ bun install
 bun add clsx
 
 # 4. Инструменты разработки и качества
-bun add -d sass prettier stylelint stylelint-config-standard-scss stylelint-order eslint-plugin-perfectionist eslint-config-prettier @eslint/js typescript-eslint vitest happy-dom @playwright/test html-validate @next/bundle-analyzer schema-dts
+bun add -d sass stylelint stylelint-config-standard-scss stylelint-order eslint-plugin-perfectionist eslint-config-prettier @eslint/js typescript-eslint vitest happy-dom @playwright/test html-validate @next/bundle-analyzer schema-dts
 
 # 5. Браузеры Playwright: chromium — профиль desktop, webkit — профиль mobile (§2.5)
 bunx playwright install chromium webkit
@@ -255,8 +255,8 @@ export default {
     "lint:js": "eslint . --max-warnings 0",
     "lint:style": "stylelint \"src/**/*.{css,scss}\" --max-warnings 0",
     "lint": "bun run lint:js && bun run lint:style",
-    "format": "prettier --write \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
+    "format": "bun fmt \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
+    "format:check": "bun fmt --check \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
     "typecheck": "astro check",
     "check": "bun run format:check && bun run lint && bun run typecheck",
     "test": "vitest run",

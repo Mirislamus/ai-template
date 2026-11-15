@@ -33,7 +33,7 @@
 Отдельный бэкенд (Bun, Elysia, Drizzle, PostgreSQL) подключается, только если он выбран в PRODUCT.md ([ADR 0019](docs/decisions/backend/0019-backend-architecture.md) §1).
 
 ### Шаг 3: Инициализация кодовой базы
-1. [docs/setup/common.md](docs/setup/common.md): структура репозитория (один пакет или монорепо), `package.json`, Prettier, переменные окружения.
+1. [docs/setup/common.md](docs/setup/common.md): структура репозитория (один пакет или монорепо), `package.json`, `.prettierrc`, переменные окружения.
 2. [docs/setup/frontend.md](docs/setup/frontend.md) для выбранного профиля: создание проекта и установка одобренного стека (раздел 1); эталонные конфиги (раздел 2): `tsconfig.json`, ESLint, Stylelint, `scripts`, тесты; конфиг фреймворка (раздел 3): `astro.config.ts`, `src/content.config.ts`; базовые стили в `src/shared/styles/` (раздел 4).
 3. [docs/setup/backend.md](docs/setup/backend.md), если выбран бэкенд: `apps/api`, база данных, локальное окружение, Docker Compose.
 4. Создание локального `.env` из `.env.example`.

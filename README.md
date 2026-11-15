@@ -18,7 +18,7 @@
 - **Сеть и состояние:** `ky`, `@tanstack/react-query`, `nanostores` (Astro), `zustand` (Next.js).
 - **Формы и валидация:** `react-hook-form` + `zod` + `imask`.
 - **Иконки и уведомления:** `lucide-react`, `sonner`.
-- **Контроль качества:** Prettier, ESLint, Stylelint, Vitest, Playwright, `html-validate`.
+- **Контроль качества:** `bun fmt`, ESLint, Stylelint, Vitest, Playwright, `html-validate`.
 - **Бэкенд (опционально):** Elysia, Drizzle ORM, PostgreSQL, Better Auth, Docker Compose; подключается по решению в PRODUCT.md ([ADR 0019](docs/decisions/backend/0019-backend-architecture.md)). Команды `apps/api` — [docs/setup/backend.md](docs/setup/backend.md) §3.
 
 Полный перечень и правила выбора — [docs/tech.md](docs/tech.md).
@@ -50,9 +50,9 @@ bun run dev
 | `bun run dev` | Локальный сервер разработки |
 | `bun run build` | Сборка в продакшен |
 | `bun run preview` | Предпросмотр собранного проекта (Astro; в Next.js — `bun run start`) |
-| `bun run check` | **Единый конвейер качества:** Prettier + ESLint + Stylelint + проверка типов |
+| `bun run check` | **Единый конвейер качества:** `bun fmt` + ESLint + Stylelint + проверка типов |
 | `bun run lint` | ESLint и Stylelint |
-| `bun run format` | Форматирование Prettier |
+| `bun run format` | Форматирование `bun fmt` |
 | `bun run typecheck` | Проверка типов без генерации файлов |
 | `bun run test` | Модульные тесты Vitest |
 | `bun run test:e2e` | Сквозные smoke-тесты Playwright |

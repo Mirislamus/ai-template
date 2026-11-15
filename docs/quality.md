@@ -78,7 +78,7 @@ bun run check
 ```
 
 Состав команды:
-1. `prettier --check` — форматирование всех файлов соответствует стандарту.
+1. `bun fmt --check` — форматирование всех файлов соответствует стандарту.
 2. `eslint . --max-warnings 0` — ноль ошибок и ворнингов в JavaScript/TypeScript.
 3. `stylelint "src/**/*.{css,scss}" --max-warnings 0` — ноль ошибок в SCSS Modules.
 4. `astro check` (или `tsc --noEmit`) — 100% строгая проверка типов без единой ошибки.

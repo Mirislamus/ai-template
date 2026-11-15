@@ -83,7 +83,7 @@
   - `pino` — структурированное логирование.
   - `file-type` — определение типа загружаемого файла по содержимому.
   - `@types/bun` — типы рантайма Bun (devDependency).
-- **Инструменты разработки (devDependencies):** `typescript`, `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`, `eslint-config-prettier`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard-scss`, `stylelint-order`, `sass`, `vitest`, `happy-dom`, `@playwright/test`, `html-validate`, `rollup-plugin-visualizer`, `@next/bundle-analyzer`.
+- **Инструменты разработки (devDependencies):** `typescript`, `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-astro`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`, `eslint-config-prettier`, `prettier` и `prettier-plugin-astro` (только профиль Astro, [ADR 0009](0009-tooling-and-linting.md) §1), `stylelint`, `stylelint-config-standard-scss`, `stylelint-order`, `sass`, `vitest`, `happy-dom`, `@playwright/test`, `html-validate`, `rollup-plugin-visualizer`, `@next/bundle-analyzer`.
 
 ---
 
