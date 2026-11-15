@@ -94,6 +94,6 @@ API принимает данные из интернета, хранит пер
 ### 8. Зависимости и контейнеры
 
 - `bun audit --audit-level=high` выполняется в CI на каждый PR; найденная уязвимость блокирует слияние ([ADR 0018](../common/0018-deployment-and-caching.md) §4).
-- Dependabot раз в неделю предлагает обновления пакетов Bun и Docker-образов отдельными PR ([поддерживаемые экосистемы](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)). Обновления сливаются после зеленого CI.
+- Dependabot раз в неделю предлагает обновления пакетов Bun и Docker-образов отдельными PR ([поддерживаемые экосистемы](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)). Обновления сливаются после зеленого CI. Конфиг — [docs/setup/common.md](../../setup/common.md) §5 и [docs/setup/backend.md](../../setup/backend.md) §9.
 - Процессы в контейнерах работают от непривилегированного пользователя (`USER bun`).
 - Порт PostgreSQL не публикуется; порт API публикуется только на `127.0.0.1`, снаружи API доступен только через Nginx.

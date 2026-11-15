@@ -38,6 +38,7 @@
   - `@typescript-eslint/no-unused-vars` с исключением префикса `_`.
   - `react-hooks/rules-of-hooks`, `react-hooks/exhaustive-deps`.
   - `no-restricted-syntax` — запрет `enum` (ADR 0004 §4) и собственных `createContext`/`useContext` (ADR 0005 §9).
+  - `no-restricted-properties` и `no-restricted-syntax` — запрет прямого чтения `process.env` и `import.meta.env` вне `env.ts` и конфигов сборки (ADR 0004 §13).
   - `perfectionist/sort-imports` — порядок групп импортов ADR 0004 §8; автоисправление `eslint --fix`.
 - `no-console` на уровне `warn` (разрешены `warn` и `error`); из-за `--max-warnings 0` `console.log` блокирует проверку.
 

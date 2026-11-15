@@ -63,9 +63,9 @@ bun add @elysia/eden
 `apps/api/eslint.config.mjs` — правила TypeScript совпадают с фронтендом ([frontend.md](frontend.md) §2.2), без плагинов Astro и React:
 ```javascript
 import eslint from '@eslint/js';
-import { defineConfig, globalIgnores } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
 import perfectionist from 'eslint-plugin-perfectionist';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
@@ -87,16 +87,26 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'separate-type-imports' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+      ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-restricted-syntax': [
         'error',
-        { selector: 'TSEnumDeclaration', message: 'enum запрещен (ADR 0004 §4): используйте union-типы или объект as const.' },
+        {
+          selector: 'TSEnumDeclaration',
+          message: 'enum запрещен (ADR 0004 §4): используйте union-типы или объект as const.',
+        },
       ],
       'no-restricted-properties': [
         'error',
-        { object: 'process', property: 'env', message: 'Переменные окружения читаются через src/config/env.ts (ADR 0023 §4).' },
+        {
+          object: 'process',
+          property: 'env',
+          message: 'Переменные окружения читаются через src/config/env.ts (ADR 0023 §4).',
+        },
       ],
       'perfectionist/sort-imports': [
         'error',
@@ -134,8 +144,8 @@ export default defineConfig([
     "start": "bun src/index.ts",
     "worker": "bun src/worker.ts",
     "lint": "eslint . --max-warnings 0",
-    "format": "bun fmt \"src/**/*.ts\"",
-    "format:check": "bun fmt --check \"src/**/*.ts\"",
+    "format": "bun fmt \"src/**/*.ts\" \"*.{ts,mjs,json}\"",
+    "format:check": "bun fmt --check \"src/**/*.ts\" \"*.{ts,mjs,json}\"",
     "typecheck": "tsc --noEmit",
     "check": "bun run format:check && bun run lint && bun run typecheck",
     "test": "bun test",
@@ -434,14 +444,8 @@ docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" restore_check'
 
 ## 9. Dependabot
 
-`.github/dependabot.yml` ([ADR 0023](../decisions/backend/0023-security-logging-and-config.md) §8):
+В `updates` файла `.github/dependabot.yml` ([common.md](common.md) §5) добавляется экосистема Docker-образов ([ADR 0023](../decisions/backend/0023-security-logging-and-config.md) §8):
 ```yaml
-version: 2
-updates:
-  - package-ecosystem: 'bun'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
   - package-ecosystem: 'docker'
     directory: '/apps/api'
     schedule:

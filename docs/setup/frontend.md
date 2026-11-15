@@ -121,11 +121,11 @@ bunx playwright install chromium webkit
 ### 2.2. `eslint.config.mjs` (Flat Config, ADR 0004, 0005, 0009)
 ```javascript
 import eslint from '@eslint/js';
-import { defineConfig, globalIgnores } from 'eslint/config';
-import astro from 'eslint-plugin-astro';
 import prettier from 'eslint-config-prettier';
+import astro from 'eslint-plugin-astro';
 import perfectionist from 'eslint-plugin-perfectionist';
 import reactHooks from 'eslint-plugin-react-hooks';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
@@ -152,16 +152,34 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'separate-type-imports' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+      ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'process',
+          property: 'env',
+          message: 'Переменные окружения читаются через @/shared/config/env (ADR 0004 §13).',
+        },
+      ],
       'no-restricted-syntax': [
         'error',
-        { selector: 'TSEnumDeclaration', message: 'enum запрещен (ADR 0004 §4): используйте union-типы или объект as const.' },
         {
-          selector: "CallExpression[callee.name=/^(createContext|useContext)$/]",
+          selector: 'TSEnumDeclaration',
+          message: 'enum запрещен (ADR 0004 §4): используйте union-типы или объект as const.',
+        },
+        {
+          selector: "MemberExpression[object.type='MetaProperty'][property.name='env']",
+          message: 'Переменные окружения читаются через @/shared/config/env (ADR 0004 §13).',
+        },
+        {
+          selector: 'CallExpression[callee.name=/^(createContext|useContext)$/]',
           message: 'Собственный React Context запрещен (ADR 0005 §9): используйте Nano Stores или Zustand.',
         },
       ],
@@ -181,6 +199,11 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    // Единственные места чтения process.env (ADR 0004 §13)
+    files: ['src/shared/config/env.ts', '*.config.ts'],
+    rules: { 'no-restricted-properties': 'off' },
   },
   prettier,
 ]);
@@ -255,8 +278,8 @@ export default {
     "lint:js": "eslint . --max-warnings 0",
     "lint:style": "stylelint \"src/**/*.{css,scss}\" --max-warnings 0",
     "lint": "bun run lint:js && bun run lint:style",
-    "format": "bun fmt \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
-    "format:check": "bun fmt --check \"src/**/*.{ts,tsx,astro,scss,json,md}\"",
+    "format": "bun fmt \"src/**/*.{ts,tsx,astro,scss,json,md}\" \"tests/**/*.ts\" \"*.{ts,mjs,json}\"",
+    "format:check": "bun fmt --check \"src/**/*.{ts,tsx,astro,scss,json,md}\" \"tests/**/*.ts\" \"*.{ts,mjs,json}\"",
     "typecheck": "astro check",
     "check": "bun run format:check && bun run lint && bun run typecheck",
     "test": "vitest run",
